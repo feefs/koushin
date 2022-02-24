@@ -1,0 +1,24 @@
+name: Build
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v2
+
+    - name: Set up Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        default: true
+
+    - name: Compile
+      uses: actions-rs/cargo@v1
+      with:
+        command: build
+        args: --release
