@@ -1,5 +1,6 @@
-use crate::config::{config_folder_path, get_auth_config, set_client_config};
+use crate::config::{config_folder_path, set_client_config};
 use crate::error::Result;
+use crate::mal::mal_prompt;
 
 use clap::{Parser, Subcommand};
 
@@ -33,27 +34,14 @@ pub fn koushin() -> Result<()> {
                 if *set_client {
                     set_client_config()?;
                 } else {
-                    let path = config_folder_path()?
-                        .into_os_string()
-                        .into_string()
-                        .unwrap();
+                    let path = config_folder_path()?.into_os_string().into_string().unwrap();
                     println!("{}", path);
                 }
             }
         },
         None => {
-            let auth = get_auth_config()?;
-            let result = ureq::get("https://api.myanimelist.net/v2/users/@me")
-                .set("Authorization", &format!("Bearer {}", auth.access_token))
-                .call()?
-                .into_string()?;
-            println!("Result: {:?}", result);
+            mal_prompt()?;
         }
     }
-
-    // let config = get_config()?;
-    // println!("Client ID: {}", config.client_id);
-    // println!("Client secret: {}", config.client_secret);
-    // todo!("IMPLEMENT LOGIC");
     Ok(())
 }

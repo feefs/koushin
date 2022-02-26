@@ -8,9 +8,8 @@ use std::path::PathBuf;
 use tiny_http::{Response, Server};
 
 const PKG_NAME: &str = env!("CARGO_PKG_NAME");
-const PORT_NUMBER: &str = "8000";
 
-#[derive(Serialize, Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub struct ClientConfig {
     pub client_id: String,
     pub client_secret: String,
@@ -22,7 +21,7 @@ enum ClientConfigAction {
     Get,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub struct AuthConfig {
     pub access_token: String,
     pub refresh_token: String,
@@ -35,9 +34,7 @@ struct TokenResponse {
 }
 
 pub fn config_folder_path() -> Result<PathBuf> {
-    Ok(std::path::PathBuf::from(std::env::var("HOME")?)
-        .join(".config")
-        .join(PKG_NAME))
+    Ok(std::path::PathBuf::from(std::env::var("HOME")?).join(".config").join(PKG_NAME))
 }
 
 fn client_config_path() -> Result<PathBuf> {
@@ -60,20 +57,9 @@ fn check_client_config(action: ClientConfigAction) -> Result<()> {
     setup_config_folder()?;
     let path = client_config_path()?;
     if !path.exists() || action == ClientConfigAction::Set {
-        let client_id = Password::new("Input MAL client ID:")
-            .with_display_mode(PasswordDisplayMode::Masked)
-            .prompt()?;
-        let client_secret = Password::new("Input MAL client secret:")
-            .with_display_mode(PasswordDisplayMode::Masked)
-            .prompt()?;
-        std::fs::write(
-            &path,
-            toml::to_string_pretty(&ClientConfig {
-                client_id,
-                client_secret,
-            })
-            .unwrap(),
-        )?
+        let client_id = Password::new("Input MAL client ID:").with_display_mode(PasswordDisplayMode::Masked).prompt()?;
+        let client_secret = Password::new("Input MAL client secret:").with_display_mode(PasswordDisplayMode::Masked).prompt()?;
+        std::fs::write(&path, toml::to_string_pretty(&ClientConfig { client_id, client_secret }).unwrap())?
     };
     Ok(())
 }
@@ -95,14 +81,10 @@ fn open_authorization() -> Result<()> {
     let challenge = verifier.clone();
     let authorization_url = format!(
         "https://myanimelist.net/v1/oauth2/authorize?response_type=code&client_id={}&code_challenge={}",
-        config.client_id,
-        challenge
+        config.client_id, challenge
     );
-    println!(
-        "Authorize koushin by visiting here:\n{}\n",
-        authorization_url
-    );
-    let server = Server::http(format!("127.0.0.1:{}", PORT_NUMBER)).unwrap();
+    println!("Authorize koushin by visiting here:\n{}\n", authorization_url);
+    let server = Server::http("127.0.0.1:8000").unwrap();
     println!("Listening for authorization code on port 8000...");
 
     let code_request = server.recv()?;
@@ -131,17 +113,12 @@ fn open_authorization() -> Result<()> {
     Ok(())
 }
 
-fn check_auth_config() -> Result<()> {
+pub fn get_auth_config() -> Result<AuthConfig> {
     setup_config_folder()?;
     let path = auth_config_path()?;
     if !path.exists() {
         open_authorization()?;
     }
-    Ok(())
-}
-
-pub fn get_auth_config() -> Result<AuthConfig> {
-    check_auth_config()?;
     let auth_config = std::fs::read(auth_config_path()?)?;
     Ok(toml::from_slice(&auth_config)?)
 }

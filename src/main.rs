@@ -1,6 +1,7 @@
 mod cli;
 mod config;
 mod error;
+mod mal;
 
 use crate::{cli::koushin, error::display_error};
 

@@ -255,6 +255,7 @@ dependencies = [
  "owo-colors",
  "qstring",
  "serde",
+ "serde_json",
  "tiny_http",
  "toml",
  "ureq",
