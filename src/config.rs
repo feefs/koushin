@@ -12,7 +12,6 @@ const PKG_NAME: &str = env!("CARGO_PKG_NAME");
 #[derive(Deserialize, Serialize)]
 pub struct ClientConfig {
     pub client_id: String,
-    pub client_secret: String,
 }
 
 #[derive(PartialEq)]
@@ -58,8 +57,7 @@ fn check_client_config(action: ClientConfigAction) -> Result<()> {
     let path = client_config_path()?;
     if !path.exists() || action == ClientConfigAction::Set {
         let client_id = Password::new("Input MAL client ID:").with_display_mode(PasswordDisplayMode::Masked).prompt()?;
-        let client_secret = Password::new("Input MAL client secret:").with_display_mode(PasswordDisplayMode::Masked).prompt()?;
-        std::fs::write(&path, toml::to_string_pretty(&ClientConfig { client_id, client_secret }).unwrap())?
+        std::fs::write(&path, toml::to_string_pretty(&ClientConfig { client_id }).unwrap())?
     };
     Ok(())
 }
@@ -95,7 +93,6 @@ fn open_authorization() -> Result<()> {
     let token_response_json: TokenResponse = ureq::post("https://myanimelist.net/v1/oauth2/token")
         .send_form(&[
             ("client_id", &config.client_id),
-            ("client_secret", &config.client_secret),
             ("code", code),
             ("code_verifier", &verifier),
             ("grant_type", "authorization_code"),

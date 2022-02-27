@@ -76,7 +76,7 @@ fn update_entry(auth: &AuthConfig, entry: &Entry) -> Result<()> {
     ureq::patch(&format!("https://api.myanimelist.net/v2/anime/{}/my_list_status", entry.id))
         .set("Authorization", &format!("Bearer {}", auth.access_token))
         .send_form(&[("num_watched_episodes", (entry.watched_episodes + 1).to_string().as_str())])?;
-    println!("{}", "Success!".green());
+    println!("{}", "更新されました!".green());
     Ok(())
 }
 
