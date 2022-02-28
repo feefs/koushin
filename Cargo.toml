@@ -5,6 +5,7 @@ edition = "2021"
 description = "A CLI tool for quickly updating (更新) your episode count on MyAnimeList"
 
 [dependencies]
+chrono = "0.4.19"
 clap = { version = "3.0.14", features = ["derive"] }
 inquire = "0.2.1"
 nanoid = "0.4.0"

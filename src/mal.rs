@@ -1,6 +1,7 @@
 use crate::config::{get_auth_config, AuthConfig};
 use crate::error::Result;
 
+use chrono::{DateTime, FixedOffset};
 use inquire::{Confirm, Select};
 use owo_colors::OwoColorize;
 use serde::{Deserialize, Serialize};
@@ -32,6 +33,7 @@ struct Node {
 #[derive(Deserialize, Serialize)]
 struct Status {
     num_episodes_watched: usize,
+    updated_at: String,
 }
 
 #[derive(Debug)]
@@ -40,11 +42,12 @@ struct Entry {
     id: usize,
     watched_episodes: usize,
     total_episodes: usize,
+    last_updated: DateTime<FixedOffset>,
 }
 
 impl std::fmt::Display for Entry {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{}", self.title)
+        write!(f, "[{}] {}", self.watched_episodes.to_string().cyan(), self.title)
     }
 }
 
@@ -62,6 +65,7 @@ fn get_entries(auth: &AuthConfig) -> Result<Vec<Entry>> {
                 id: data.node.id,
                 watched_episodes: data.node.my_list_status.num_episodes_watched,
                 total_episodes: data.node.num_episodes,
+                last_updated: DateTime::parse_from_rfc3339(&data.node.my_list_status.updated_at).unwrap(),
             })
         }
         if page.paging.next.is_none() {
@@ -69,6 +73,7 @@ fn get_entries(auth: &AuthConfig) -> Result<Vec<Entry>> {
         }
         page = ureq::get(&page.paging.next.unwrap()).set("Authorization", &format!("Bearer {}", auth.access_token)).call()?.into_json()?;
     }
+    entries.sort_by(|a, b| b.last_updated.cmp(&a.last_updated));
     Ok(entries)
 }
 
