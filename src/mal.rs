@@ -2,7 +2,7 @@ use crate::config::{get_auth_config, AuthConfig};
 use crate::error::Result;
 
 use chrono::{DateTime, FixedOffset};
-use inquire::{Confirm, Select};
+use inquire::{Confirm, CustomType, Select};
 use owo_colors::OwoColorize;
 use serde::{Deserialize, Serialize};
 
@@ -45,6 +45,11 @@ struct Entry {
     last_updated: DateTime<FixedOffset>,
 }
 
+pub enum MALPromptAction {
+    Set,
+    Increment,
+}
+
 impl std::fmt::Display for Entry {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "[{}] {}", self.watched_episodes.to_string().cyan(), self.title)
@@ -77,15 +82,19 @@ fn get_entries(auth: &AuthConfig) -> Result<Vec<Entry>> {
     Ok(entries)
 }
 
-fn update_entry(auth: &AuthConfig, entry: &Entry) -> Result<()> {
+fn update_entry(action: MALPromptAction, auth: &AuthConfig, entry: &Entry) -> Result<()> {
+    let new_episode_count: usize = match action {
+        MALPromptAction::Set => CustomType::new("Input episode count:").with_error_message("Invalid episode count!").prompt()?,
+        MALPromptAction::Increment => entry.watched_episodes + 1,
+    };
     ureq::patch(&format!("https://api.myanimelist.net/v2/anime/{}/my_list_status", entry.id))
         .set("Authorization", &format!("Bearer {}", auth.access_token))
-        .send_form(&[("num_watched_episodes", (entry.watched_episodes + 1).to_string().as_str())])?;
+        .send_form(&[("num_watched_episodes", new_episode_count.to_string().as_str())])?;
     println!("{}", "更新されました!".green());
     Ok(())
 }
 
-pub fn mal_prompt() -> Result<()> {
+pub fn mal_prompt(action: MALPromptAction) -> Result<()> {
     let auth = get_auth_config()?;
     let entries = get_entries(&auth)?;
     let entry = Select::new("Select an anime you are currently watching:", entries).prompt()?;
@@ -94,12 +103,19 @@ pub fn mal_prompt() -> Result<()> {
         .with_help_message(&format!(
             "{} -> {}/{} episodes",
             entry.watched_episodes,
-            entry.watched_episodes + 1,
-            entry.total_episodes
+            match action {
+                MALPromptAction::Set => "N".to_string(),
+                MALPromptAction::Increment => (entry.watched_episodes + 1).to_string(),
+            },
+            if entry.total_episodes == 0 {
+                "?".to_string()
+            } else {
+                entry.total_episodes.to_string()
+            }
         ))
         .prompt()?;
     if ans {
-        update_entry(&auth, &entry)?;
+        update_entry(action, &auth, &entry)?;
     }
     Ok(())
 }

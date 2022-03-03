@@ -260,7 +260,7 @@ dependencies = [
 
 [[package]]
 name = "koushin"
-version = "0.1.0"
+version = "0.1.2"
 dependencies = [
  "chrono",
  "clap",
@@ -753,9 +753,9 @@ checksum = "25eb0ca3468fc0acc11828786797f6ef9aa1555e4a211a60d64cc8e4d1be47d6"
 
 [[package]]
 name = "tiny_http"
-version = "0.10.0"
+version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c5f8734c6d6943ad6df6b588d228a87b4af184998bcffa268ceddf05c2055a8c"
+checksum = "e0d6ef4e10d23c1efb862eecad25c5054429a71958b4eeef85eb5e7170b477ca"
 dependencies = [
  "ascii",
  "chunked_transfer",

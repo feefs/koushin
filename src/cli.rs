@@ -1,6 +1,6 @@
 use crate::config::{config_folder_path, set_client_config};
 use crate::error::Result;
-use crate::mal::mal_prompt;
+use crate::mal::{mal_prompt, MALPromptAction};
 
 use clap::{Parser, Subcommand};
 
@@ -9,6 +9,9 @@ use clap::{Parser, Subcommand};
 struct Cli {
     #[clap(subcommand)]
     command: Option<CliCommands>,
+    #[clap(short, long)]
+    /// Set specific episode count instead of incrementing
+    set_specific: bool,
 }
 
 #[derive(Subcommand)]
@@ -40,7 +43,11 @@ pub fn koushin() -> Result<()> {
             }
         },
         None => {
-            mal_prompt()?;
+            mal_prompt(if cli.set_specific {
+                MALPromptAction::Set
+            } else {
+                MALPromptAction::Increment
+            })?;
         }
     }
     Ok(())
