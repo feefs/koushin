@@ -36,7 +36,7 @@ struct Status {
     updated_at: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Entry {
     title: String,
     id: usize,
@@ -82,7 +82,7 @@ fn get_entries(auth: &AuthConfig) -> Result<Vec<Entry>> {
     Ok(entries)
 }
 
-fn update_entry(action: MALPromptAction, auth: &AuthConfig, entry: &Entry) -> Result<()> {
+fn update_entry(action: &MALPromptAction, auth: &AuthConfig, entry: &Entry) -> Result<()> {
     let new_episode_count: usize = match action {
         MALPromptAction::Set => CustomType::new("Input episode count:").with_error_message("Invalid episode count!").prompt()?,
         MALPromptAction::Increment => entry.watched_episodes + 1,
@@ -94,28 +94,34 @@ fn update_entry(action: MALPromptAction, auth: &AuthConfig, entry: &Entry) -> Re
     Ok(())
 }
 
-pub fn mal_prompt(action: MALPromptAction) -> Result<()> {
+pub fn mal_prompt(action: &MALPromptAction) -> Result<()> {
     let auth = get_auth_config()?;
     let entries = get_entries(&auth)?;
-    let entry = Select::new("Select an anime you are currently watching:", entries).prompt()?;
-    let ans = Confirm::new(&format!("Update \"{}\"?", entry.title))
-        .with_default(true)
-        .with_help_message(&format!(
-            "{} -> {}/{} episodes",
-            entry.watched_episodes,
-            match action {
-                MALPromptAction::Set => "N".to_string(),
-                MALPromptAction::Increment => (entry.watched_episodes + 1).to_string(),
-            },
-            if entry.total_episodes == 0 {
-                "?".to_string()
-            } else {
-                entry.total_episodes.to_string()
-            }
-        ))
-        .prompt()?;
-    if ans {
-        update_entry(action, &auth, &entry)?;
+    let mut finished = false;
+    let entries_prompt = Select::new("Select an anime you are currently watching:", entries);
+    while !finished {
+        let entry = entries_prompt.clone().prompt()?;
+        let ans = Confirm::new(&format!("Update \"{}\"?", entry.title))
+            .with_default(true)
+            .with_help_message(&format!(
+                "{} -> {}/{} episodes",
+                entry.watched_episodes,
+                match action {
+                    MALPromptAction::Set => "N".to_string(),
+                    MALPromptAction::Increment => (entry.watched_episodes + 1).to_string(),
+                },
+                if entry.total_episodes == 0 {
+                    "?".to_string()
+                } else {
+                    entry.total_episodes.to_string()
+                }
+            ))
+            .prompt()?;
+        if ans {
+            update_entry(action, &auth, &entry)?;
+            finished = true;
+        }
     }
+
     Ok(())
 }

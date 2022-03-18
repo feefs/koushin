@@ -44,9 +44,9 @@ pub fn koushin() -> Result<()> {
         },
         None => {
             mal_prompt(if cli.set_specific {
-                MALPromptAction::Set
+                &MALPromptAction::Set
             } else {
-                MALPromptAction::Increment
+                &MALPromptAction::Increment
             })?;
         }
     }
