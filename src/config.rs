@@ -32,6 +32,11 @@ struct TokenResponse {
     refresh_token: String,
 }
 
+#[derive(Deserialize)]
+struct RefreshResponse {
+    access_token: String,
+}
+
 pub fn config_folder_path() -> Result<PathBuf> {
     Ok(std::path::PathBuf::from(std::env::var("HOME")?).join(".config").join(PKG_NAME))
 }
@@ -73,6 +78,10 @@ pub fn set_client_config() -> Result<()> {
     Ok(())
 }
 
+fn deserialize_auth_config() -> Result<AuthConfig> {
+    Ok(toml::from_slice(&std::fs::read(auth_config_path()?)?)?)
+}
+
 fn open_authorization() -> Result<()> {
     let config = get_client_config()?;
     let verifier = nanoid!(128);
@@ -110,12 +119,37 @@ fn open_authorization() -> Result<()> {
     Ok(())
 }
 
+fn verify_refresh_auth() -> Result<()> {
+    let auth_config = deserialize_auth_config()?;
+    let client_config = get_client_config()?;
+    if let Err(ureq::Error::Status(_, _)) =
+        ureq::get("https://api.myanimelist.net/v2/users/@me").set("Authorization", &format!("Bearer {}", auth_config.access_token)).call()
+    {
+        let refresh_response_json: RefreshResponse = ureq::post("https://myanimelist.net/v1/oauth2/token")
+            .send_form(&[
+                ("client_id", &client_config.client_id),
+                ("refresh_token", &auth_config.refresh_token),
+                ("grant_type", "refresh_token"),
+            ])?
+            .into_json()?;
+        std::fs::write(
+            &auth_config_path()?,
+            toml::to_string_pretty(&AuthConfig {
+                access_token: refresh_response_json.access_token,
+                refresh_token: auth_config.refresh_token,
+            })
+            .unwrap(),
+        )?;
+    }
+    Ok(())
+}
+
 pub fn get_auth_config() -> Result<AuthConfig> {
     setup_config_folder()?;
     let path = auth_config_path()?;
     if !path.exists() {
         open_authorization()?;
-    }
-    let auth_config = std::fs::read(auth_config_path()?)?;
-    Ok(toml::from_slice(&auth_config)?)
+    };
+    verify_refresh_auth()?;
+    deserialize_auth_config()
 }

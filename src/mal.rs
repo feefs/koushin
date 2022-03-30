@@ -83,13 +83,38 @@ fn get_entries(auth: &AuthConfig) -> Result<Vec<Entry>> {
 }
 
 fn update_entry(action: &MALPromptAction, auth: &AuthConfig, entry: &Entry) -> Result<()> {
+    let request = ureq::patch(&format!("https://api.myanimelist.net/v2/anime/{}/my_list_status", entry.id))
+        .set("Authorization", &format!("Bearer {}", auth.access_token));
     let new_episode_count: usize = match action {
         MALPromptAction::Set => CustomType::new("Input episode count:").with_error_message("Invalid episode count!").prompt()?,
         MALPromptAction::Increment => entry.watched_episodes + 1,
     };
-    ureq::patch(&format!("https://api.myanimelist.net/v2/anime/{}/my_list_status", entry.id))
-        .set("Authorization", &format!("Bearer {}", auth.access_token))
-        .send_form(&[("num_watched_episodes", new_episode_count.to_string().as_str())])?;
+    let mut set_completed = false;
+    if new_episode_count == entry.total_episodes {
+        set_completed = Confirm::new(&format!("Set \"{}\" as completed?", entry.title)).with_default(true).prompt()?;
+    }
+    if set_completed {
+        let score: usize = CustomType::new("Input score (0-10):")
+            .with_parser({
+                &|n: &str| {
+                    let num = n.parse::<usize>();
+                    match num {
+                        Ok(0..=10) => Ok(num.unwrap_or(10)),
+                        _ => Err(()),
+                    }
+                }
+            })
+            .with_error_message("Invalid score!")
+            .prompt()?;
+        request.send_form(&[
+            ("num_watched_episodes", new_episode_count.to_string().as_str()),
+            ("status", "completed"),
+            ("score", score.to_string().as_str()),
+        ])?;
+    } else {
+        request.send_form(&[("num_watched_episodes", new_episode_count.to_string().as_str())])?;
+    }
+
     println!("{}", "更新されました!".green());
     Ok(())
 }
