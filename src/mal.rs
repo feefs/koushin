@@ -2,7 +2,7 @@ use crate::config::{get_auth_config, AuthConfig};
 use crate::error::Result;
 
 use chrono::{DateTime, FixedOffset};
-use inquire::{Confirm, CustomType, Select};
+use inquire::{Confirm, CustomType, Select, Text};
 use owo_colors::OwoColorize;
 use serde::{Deserialize, Serialize};
 
@@ -85,7 +85,7 @@ fn get_entries(auth: &AuthConfig) -> Result<Vec<Entry>> {
 fn update_entry(action: &MALPromptAction, auth: &AuthConfig, entry: &Entry) -> Result<()> {
     let request = ureq::patch(&format!("https://api.myanimelist.net/v2/anime/{}/my_list_status", entry.id))
         .set("Authorization", &format!("Bearer {}", auth.access_token));
-    let new_episode_count: usize = match action {
+    let new_episode_count = match action {
         MALPromptAction::Set => CustomType::new("Input episode count:").with_error_message("Invalid episode count!").prompt()?,
         MALPromptAction::Increment => entry.watched_episodes + 1,
     };
@@ -94,9 +94,9 @@ fn update_entry(action: &MALPromptAction, auth: &AuthConfig, entry: &Entry) -> R
         set_completed = Confirm::new(&format!("Set \"{}\" as completed?", entry.title)).with_default(true).prompt()?;
     }
     if set_completed {
-        let score: usize = CustomType::new("Input score (0-10):")
+        let score = CustomType::new("Input score (0-10):")
             .with_parser({
-                &|n: &str| {
+                &|n| {
                     let num = n.parse::<usize>();
                     match num {
                         Ok(0..=10) => Ok(num.unwrap_or(10)),
@@ -106,10 +106,12 @@ fn update_entry(action: &MALPromptAction, auth: &AuthConfig, entry: &Entry) -> R
             })
             .with_error_message("Invalid score!")
             .prompt()?;
+        let review = Text::new("Input review:").prompt()?;
         request.send_form(&[
             ("num_watched_episodes", new_episode_count.to_string().as_str()),
             ("status", "completed"),
             ("score", score.to_string().as_str()),
+            ("tags", &review),
         ])?;
     } else {
         request.send_form(&[("num_watched_episodes", new_episode_count.to_string().as_str())])?;
