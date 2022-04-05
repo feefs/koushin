@@ -2,6 +2,7 @@ use crate::error::Result;
 
 use inquire::{Password, PasswordDisplayMode};
 use nanoid::nanoid;
+use owo_colors::OwoColorize;
 use qstring::QString;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
@@ -140,6 +141,7 @@ fn verify_refresh_auth() -> Result<()> {
             })
             .unwrap(),
         )?;
+        println!("{}", "Access token refreshed!".cyan());
     }
     Ok(())
 }
