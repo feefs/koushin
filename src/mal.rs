@@ -121,7 +121,7 @@ fn update_entry(action: &MALPromptAction, auth: &AuthConfig, entry: &Entry) -> R
     Ok(())
 }
 
-pub fn mal_prompt(action: &MALPromptAction) -> Result<()> {
+pub fn mal_update_prompt(action: &MALPromptAction) -> Result<()> {
     let auth = get_auth_config()?;
     let entries = get_entries(&auth)?;
     let mut finished = false;
@@ -148,6 +148,19 @@ pub fn mal_prompt(action: &MALPromptAction) -> Result<()> {
             update_entry(action, &auth, &entry)?;
             finished = true;
         }
+    }
+
+    Ok(())
+}
+
+pub fn mal_currently_watching_list() -> Result<()> {
+    let auth = get_auth_config()?;
+    let entries = get_entries(&auth)?;
+
+    println!("{}", "Currently Watching:".green());
+
+    for e in entries {
+        println!("  {}", e);
     }
 
     Ok(())

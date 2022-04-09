@@ -1,6 +1,6 @@
 [package]
 name = "koushin"
-version = "0.1.3"
+version = "0.1.4"
 edition = "2021"
 description = "A CLI tool for quickly updating (更新) your episode count on MyAnimeList"
 

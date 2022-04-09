@@ -1,6 +1,6 @@
 use crate::config::{config_folder_path, set_client_config};
 use crate::error::Result;
-use crate::mal::{mal_prompt, MALPromptAction};
+use crate::mal::{mal_currently_watching_list, mal_update_prompt, MALPromptAction};
 
 use clap::{Parser, Subcommand};
 
@@ -22,6 +22,8 @@ enum CliCommands {
         /// Set client config
         set_client: bool,
     },
+    /// List currently watching anime without updating
+    List,
 }
 
 pub fn koushin() -> Result<()> {
@@ -41,9 +43,10 @@ pub fn koushin() -> Result<()> {
                     println!("{}", path);
                 }
             }
+            CliCommands::List => mal_currently_watching_list()?,
         },
         None => {
-            mal_prompt(if cli.set_specific {
+            mal_update_prompt(if cli.set_specific {
                 &MALPromptAction::Set
             } else {
                 &MALPromptAction::Increment
