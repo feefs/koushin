@@ -90,7 +90,7 @@ fn update_entry(action: &MALPromptAction, auth: &AuthConfig, entry: &Entry) -> R
         MALPromptAction::Increment => entry.watched_episodes + 1,
     };
     let mut set_completed = false;
-    if new_episode_count == entry.total_episodes {
+    if new_episode_count == entry.total_episodes && entry.total_episodes != 0 {
         set_completed = Confirm::new(&format!("Set \"{}\" as completed?", entry.title)).with_default(true).prompt()?;
     }
     if set_completed {
