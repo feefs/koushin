@@ -1,6 +1,6 @@
 [package]
 name = "koushin"
-version = "0.1.4"
+version = "0.1.5"
 edition = "2021"
 description = "A CLI tool for quickly updating (更新) your episode count on MyAnimeList"
 
@@ -9,6 +9,7 @@ chrono = "0.4.19"
 clap = { version = "3.1.8", features = ["derive"] }
 inquire = "0.2.1"
 nanoid = "0.4.0"
+phf = { version = "0.10.1", features = ["macros"] }
 owo-colors = "3.3.0"
 qstring = "0.7.2"
 serde = { version = "1.0.136", features = ["derive"] }

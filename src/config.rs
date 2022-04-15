@@ -61,21 +61,25 @@ fn setup_config_folder() -> Result<()> {
 fn check_client_config(action: ClientConfigAction) -> Result<()> {
     setup_config_folder()?;
     let path = client_config_path()?;
+
     if !path.exists() || action == ClientConfigAction::Set {
         let client_id = Password::new("Input MAL client ID:").with_display_mode(PasswordDisplayMode::Masked).prompt()?;
         std::fs::write(&path, toml::to_string_pretty(&ClientConfig { client_id }).unwrap())?
     };
+
     Ok(())
 }
 
 pub fn get_client_config() -> Result<ClientConfig> {
     check_client_config(ClientConfigAction::Get)?;
     let client_config = std::fs::read(client_config_path()?)?;
+
     Ok(toml::from_slice(&client_config)?)
 }
 
 pub fn set_client_config() -> Result<()> {
     check_client_config(ClientConfigAction::Set)?;
+
     Ok(())
 }
 
@@ -91,10 +95,11 @@ fn open_authorization() -> Result<()> {
         "https://myanimelist.net/v1/oauth2/authorize?response_type=code&client_id={}&code_challenge={}",
         config.client_id, challenge
     );
+
     println!("Authorize koushin by visiting here:\n{}\n", authorization_url);
     let server = Server::http("127.0.0.1:8000").unwrap();
-    println!("Listening for authorization code on port 8000...");
 
+    println!("Listening for authorization code on port 8000...");
     let code_request = server.recv()?;
     let qs = QString::from(code_request.url());
     let code = qs.get("/?code").unwrap();
@@ -117,12 +122,14 @@ fn open_authorization() -> Result<()> {
         })
         .unwrap(),
     )?;
+
     Ok(())
 }
 
 fn verify_refresh_auth() -> Result<()> {
     let auth_config = deserialize_auth_config()?;
     let client_config = get_client_config()?;
+
     if let Err(ureq::Error::Status(_, _)) =
         ureq::get("https://api.myanimelist.net/v2/users/@me").set("Authorization", &format!("Bearer {}", auth_config.access_token)).call()
     {
@@ -143,6 +150,7 @@ fn verify_refresh_auth() -> Result<()> {
         )?;
         println!("{}", "Access token refreshed!".cyan());
     }
+
     Ok(())
 }
 

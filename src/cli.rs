@@ -53,5 +53,6 @@ pub fn koushin() -> Result<()> {
             })?;
         }
     }
+
     Ok(())
 }
