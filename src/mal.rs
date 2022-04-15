@@ -1,7 +1,7 @@
 use crate::config::{get_auth_config, AuthConfig};
 use crate::error::Result;
 
-use chrono::{DateTime, Datelike, Local, Weekday};
+use chrono::{Datelike, Local, Weekday};
 use inquire::{Confirm, CustomType, Select, Text};
 use owo_colors::OwoColorize;
 use serde::{Deserialize, Serialize};
@@ -44,7 +44,6 @@ struct Entry {
     watched_episodes: usize,
     total_episodes: usize,
     weekday: Option<Weekday>,
-    last_updated: DateTime<Local>,
 }
 
 impl std::fmt::Display for Entry {
@@ -84,7 +83,6 @@ fn get_entries(auth: &AuthConfig) -> Result<Vec<Entry>> {
                 watched_episodes: data.node.my_list_status.num_episodes_watched,
                 total_episodes: data.node.num_episodes,
                 weekday: WEEKDAY_MAPPINGS.get(&data.node.my_list_status.tags.first().unwrap_or(&"".to_string()).to_lowercase()).cloned(),
-                last_updated: DateTime::parse_from_rfc3339(&data.node.my_list_status.updated_at).unwrap().with_timezone(&Local),
             });
         }
         if page.paging.next.is_none() {
@@ -93,7 +91,7 @@ fn get_entries(auth: &AuthConfig) -> Result<Vec<Entry>> {
         page = ureq::get(&page.paging.next.unwrap()).set("Authorization", &format!("Bearer {}", auth.access_token)).call()?.into_json()?;
     }
 
-    entries.sort_by(|a, b| b.last_updated.cmp(&a.last_updated));
+    entries.sort_by(|a, b| a.title.cmp(&b.title));
     Ok(entries)
 }
 
@@ -143,7 +141,7 @@ pub fn mal_update_prompt(action: &MALPromptAction) -> Result<()> {
     let entries = get_entries(&auth)?;
 
     let mut finished = false;
-    let entries_prompt = Select::new("Select an anime you are currently watching:", entries);
+    let entries_prompt = Select::new("Select an anime you are currently watching:", entries).with_page_size(20);
 
     while !finished {
         let entry = entries_prompt.clone().prompt()?;
