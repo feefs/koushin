@@ -1,19 +1,19 @@
 [package]
 name = "koushin"
-version = "0.1.5"
+version = "0.1.6"
 edition = "2021"
 description = "A CLI tool for quickly updating (更新) your episode count on MyAnimeList"
 
 [dependencies]
 chrono = "0.4.19"
-clap = { version = "3.1.8", features = ["derive"] }
+clap = { version = "3.1.17", features = ["derive"] }
 inquire = "0.2.1"
 nanoid = "0.4.0"
-owo-colors = "3.3.0"
+owo-colors = "3.4.0"
 phf = { version = "0.10.1", features = ["macros"] }
 qstring = "0.7.2"
-serde = { version = "1.0.136", features = ["derive"] }
-serde_json = "1.0.79"
+serde = { version = "1.0.137", features = ["derive"] }
+serde_json = "1.0.81"
 tiny_http = "0.11.0"
-toml = "0.5.8"
+toml = "0.5.9"
 ureq = {version = "2.4.0", features = ["json"] }

@@ -190,7 +190,7 @@ pub fn mal_currently_watching_list() -> Result<()> {
     }
 
     if !off_season_entries.is_empty() {
-        println!("{}", "Off-season:".magenta());
+        println!("{}:", "Off-season".magenta().underline().italic());
         for off_season_entry in off_season_entries {
             println!("  {}", off_season_entry);
         }
@@ -200,7 +200,7 @@ pub fn mal_currently_watching_list() -> Result<()> {
         match vector.first() {
             Some(entry) => {
                 let weekday = entry.weekday.unwrap();
-                println!("{}:", weekday.to_string().magenta());
+                println!("{}:", weekday.to_string().magenta().underline().italic());
                 for seasonal_entry in vector {
                     println!("  {}", seasonal_entry)
                 }
