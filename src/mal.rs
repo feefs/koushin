@@ -179,10 +179,12 @@ pub fn mal_currently_watching_list() -> Result<()> {
 
     entries.sort_by(|a, b| a.title.cmp(&b.title));
 
+    let today = Local::now().weekday();
+
     for entry in entries {
         match entry.weekday {
             Some(weekday) => {
-                let index = (7 + weekday.num_days_from_monday() - Local::now().weekday().num_days_from_monday()) % 7;
+                let index = (7 + weekday.num_days_from_monday() - today.num_days_from_monday()) % 7;
                 seasonal_entry_vectors[index as usize].push(entry);
             }
             None => off_season_entries.push(entry),
@@ -190,7 +192,7 @@ pub fn mal_currently_watching_list() -> Result<()> {
     }
 
     if !off_season_entries.is_empty() {
-        println!("{}:", "Off-season".magenta().underline().italic());
+        println!("{}:", "Off-season".magenta().underline());
         for off_season_entry in off_season_entries {
             println!("  {}", off_season_entry);
         }
@@ -200,7 +202,11 @@ pub fn mal_currently_watching_list() -> Result<()> {
         match vector.first() {
             Some(entry) => {
                 let weekday = entry.weekday.unwrap();
-                println!("{}:", weekday.to_string().magenta().underline().italic());
+                if weekday == today {
+                    println!("{}:", weekday.to_string().green().underline());
+                } else {
+                    println!("{}:", weekday.to_string().magenta().underline());
+                }
                 for seasonal_entry in vector {
                     println!("  {}", seasonal_entry)
                 }
