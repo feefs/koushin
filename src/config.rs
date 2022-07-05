@@ -55,6 +55,7 @@ fn setup_config_folder() -> Result<()> {
     if !folder_path.exists() {
         std::fs::create_dir_all(&folder_path)?
     };
+
     Ok(())
 }
 

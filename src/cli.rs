@@ -1,29 +1,36 @@
 use crate::config::{config_folder_path, set_client_config};
 use crate::error::Result;
-use crate::mal::{mal_currently_watching_list, mal_update_prompt, MALPromptAction};
+use crate::mal::{mal_action_prompt, mal_display_currently_watching_list, MALPromptAction};
 
-use clap::{Parser, Subcommand};
+use clap::{ArgGroup, Parser, Subcommand};
 
 #[derive(Parser)]
 #[clap(about, version)]
 struct Cli {
     #[clap(subcommand)]
     command: Option<CliCommands>,
-    #[clap(short, long)]
-    /// Set specific episode count instead of incrementing
-    set_specific: bool,
 }
 
 #[derive(Subcommand)]
 enum CliCommands {
     /// Interact with the config
     Config {
-        #[clap(long)]
+        #[clap(short, long)]
         /// Set client config
         set_client: bool,
     },
-    /// List currently watching anime without updating
+    /// Display your currently watching anime list
     List,
+    #[clap(group(ArgGroup::new("set").required(true)))]
+    /// Set an attribute for an anime on your list
+    Set {
+        #[clap(group = "set", short = 'e', long = "episode")]
+        /// Set episode count
+        set_episode: bool,
+        #[clap(group = "set", short = 'd', long = "day")]
+        /// Set airing day
+        set_airing_day: bool,
+    },
 }
 
 pub fn koushin() -> Result<()> {
@@ -32,7 +39,6 @@ pub fn koushin() -> Result<()> {
     }
 
     let cli = Cli::parse();
-
     match &cli.command {
         Some(command) => match command {
             CliCommands::Config { set_client } => {
@@ -43,15 +49,17 @@ pub fn koushin() -> Result<()> {
                     println!("{}", path);
                 }
             }
-            CliCommands::List => mal_currently_watching_list()?,
+            CliCommands::List => mal_display_currently_watching_list()?,
+            CliCommands::Set { set_episode, set_airing_day } => {
+                let action = match (set_episode, set_airing_day) {
+                    (true, _) => &MALPromptAction::SetEpisode,
+                    (_, true) => &MALPromptAction::SetAiringDay,
+                    (false, false) => unreachable!(),
+                };
+                mal_action_prompt(action)?
+            }
         },
-        None => {
-            mal_update_prompt(if cli.set_specific {
-                &MALPromptAction::Set
-            } else {
-                &MALPromptAction::Increment
-            })?;
-        }
+        None => mal_action_prompt(&MALPromptAction::IncrementEpisode)?,
     }
 
     Ok(())

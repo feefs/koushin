@@ -53,8 +53,9 @@ impl std::fmt::Display for Entry {
 }
 
 pub enum MALPromptAction {
-    Set,
-    Increment,
+    SetEpisode,
+    SetAiringDay,
+    IncrementEpisode,
 }
 
 static WEEKDAY_MAPPINGS: phf::Map<&'static str, Weekday> = phf::phf_map! {
@@ -65,6 +66,16 @@ static WEEKDAY_MAPPINGS: phf::Map<&'static str, Weekday> = phf::phf_map! {
     "friday" => Weekday::Fri,
     "saturday" => Weekday::Sat,
     "sunday" => Weekday::Sun,
+};
+
+static AIRING_DAY_MAPPINGS: phf::Map<u32, &'static str> = phf::phf_map! {
+    0_u32 => "monday",
+    1_u32 => "tuesday",
+    2_u32 => "wednesday",
+    3_u32 => "thursday",
+    4_u32 => "friday",
+    5_u32 => "saturday",
+    6_u32 => "sunday"
 };
 
 fn get_entries(auth: &AuthConfig) -> Result<Vec<Entry>> {
@@ -92,15 +103,22 @@ fn get_entries(auth: &AuthConfig) -> Result<Vec<Entry>> {
     }
 
     entries.sort_by(|a, b| a.title.cmp(&b.title));
+
     Ok(entries)
 }
 
-fn update_entry(action: &MALPromptAction, auth: &AuthConfig, entry: &Entry) -> Result<()> {
-    let request = ureq::patch(&format!("https://api.myanimelist.net/v2/anime/{}/my_list_status", entry.id))
-        .set("Authorization", &format!("Bearer {}", auth.access_token));
+fn get_base_update_request(auth: &AuthConfig, entry: &Entry) -> ureq::Request {
+    ureq::patch(&format!("https://api.myanimelist.net/v2/anime/{}/my_list_status", entry.id))
+        .set("Authorization", &format!("Bearer {}", auth.access_token))
+}
+
+fn update_episode_count(action: &MALPromptAction, auth: &AuthConfig, entry: &Entry) -> Result<()> {
+    let request = get_base_update_request(auth, entry);
+
     let new_episode_count = match action {
-        MALPromptAction::Set => CustomType::new("Input episode count:").with_error_message("Invalid episode count!").prompt()?,
-        MALPromptAction::Increment => entry.watched_episodes + 1,
+        MALPromptAction::SetEpisode => CustomType::new("Input episode count:").with_error_message("Invalid episode count!").prompt()?,
+        MALPromptAction::IncrementEpisode => entry.watched_episodes + 1,
+        _ => unreachable!(),
     };
 
     let mut set_completed = false;
@@ -132,45 +150,78 @@ fn update_entry(action: &MALPromptAction, auth: &AuthConfig, entry: &Entry) -> R
         request.send_form(&[("num_watched_episodes", new_episode_count.to_string().as_str())])?;
     }
 
-    println!("{}", "更新されました!".green());
     Ok(())
 }
 
-pub fn mal_update_prompt(action: &MALPromptAction) -> Result<()> {
+fn update_airing_day(auth: &AuthConfig, entry: &Entry) -> Result<()> {
+    let request = get_base_update_request(auth, entry);
+
+    let prompt_text = format!("Select an airing day to set for \"{}\"", &entry.title);
+    let weekday = Select::new(
+        &prompt_text,
+        vec![
+            Weekday::Mon,
+            Weekday::Tue,
+            Weekday::Wed,
+            Weekday::Thu,
+            Weekday::Fri,
+            Weekday::Sat,
+            Weekday::Sun,
+        ],
+    )
+    .prompt()?;
+    let airing_day = AIRING_DAY_MAPPINGS.get(&weekday.num_days_from_monday()).cloned().unwrap_or_default();
+
+    request.send_form(&[("tags", airing_day)])?;
+
+    Ok(())
+}
+
+pub fn mal_action_prompt(action: &MALPromptAction) -> Result<()> {
     let auth = get_auth_config()?;
     let entries = get_entries(&auth)?;
 
-    let mut finished = false;
+    let mut confirmed = false;
     let entries_prompt = Select::new("Select an anime you are currently watching:", entries).with_page_size(20);
 
-    while !finished {
+    while !confirmed {
         let entry = entries_prompt.clone().prompt()?;
-        let ans = Confirm::new(&format!("Update \"{}\"?", entry.title))
-            .with_default(true)
-            .with_help_message(&format!(
-                "{} -> {}/{} episodes",
-                entry.watched_episodes,
-                match action {
-                    MALPromptAction::Set => "N".to_string(),
-                    MALPromptAction::Increment => (entry.watched_episodes + 1).to_string(),
-                },
-                if entry.total_episodes == 0 {
-                    "?".to_string()
-                } else {
-                    entry.total_episodes.to_string()
-                }
-            ))
-            .prompt()?;
-        if ans {
-            update_entry(action, &auth, &entry)?;
-            finished = true;
+        let prompt_text = format!("Update \"{}\"?", entry.title);
+        let prompt = Confirm::new(&prompt_text).with_default(true);
+
+        confirmed = match action {
+            MALPromptAction::SetEpisode | MALPromptAction::IncrementEpisode => prompt
+                .with_help_message(&format!(
+                    "{} -> {}/{} episodes",
+                    entry.watched_episodes,
+                    match action {
+                        MALPromptAction::SetEpisode => "N".to_string(),
+                        MALPromptAction::IncrementEpisode => (entry.watched_episodes + 1).to_string(),
+                        _ => unreachable!(),
+                    },
+                    if entry.total_episodes == 0 {
+                        "?".to_string()
+                    } else {
+                        entry.total_episodes.to_string()
+                    }
+                ))
+                .prompt()?,
+            MALPromptAction::SetAiringDay => prompt.with_help_message("Change airing day").prompt()?,
+        };
+
+        if confirmed {
+            match action {
+                MALPromptAction::SetEpisode | MALPromptAction::IncrementEpisode => update_episode_count(action, &auth, &entry)?,
+                MALPromptAction::SetAiringDay => update_airing_day(&auth, &entry)?,
+            }
+            println!("{}", "更新されました!".green());
         }
     }
 
     Ok(())
 }
 
-pub fn mal_currently_watching_list() -> Result<()> {
+pub fn mal_display_currently_watching_list() -> Result<()> {
     let auth = get_auth_config()?;
     let mut entries = get_entries(&auth)?;
 
