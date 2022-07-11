@@ -2,7 +2,7 @@ use crate::config::{config_folder_path, set_client_config};
 use crate::error::Result;
 use crate::mal::{mal_action_prompt, mal_display_currently_watching_list, MALPromptAction};
 
-use clap::{ArgGroup, Parser, Subcommand};
+use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
 #[clap(about, version)]
@@ -21,16 +21,19 @@ enum CliCommands {
     },
     /// Display your currently watching anime list
     List,
-    #[clap(group(ArgGroup::new("set").required(true)))]
     /// Set an attribute for an anime on your list
     Set {
-        #[clap(group = "set", short = 'e', long = "episode")]
-        /// Set episode count
-        set_episode: bool,
-        #[clap(group = "set", short = 'd', long = "day")]
-        /// Set airing day
-        set_airing_day: bool,
+        #[clap(subcommand)]
+        set_command: SetCommands,
     },
+}
+
+#[derive(Subcommand)]
+enum SetCommands {
+    /// Set episode count
+    Count,
+    /// Set airing day
+    Day,
 }
 
 pub fn koushin() -> Result<()> {
@@ -50,11 +53,10 @@ pub fn koushin() -> Result<()> {
                 }
             }
             CliCommands::List => mal_display_currently_watching_list()?,
-            CliCommands::Set { set_episode, set_airing_day } => {
-                let action = match (set_episode, set_airing_day) {
-                    (true, _) => &MALPromptAction::SetEpisode,
-                    (_, true) => &MALPromptAction::SetAiringDay,
-                    (false, false) => unreachable!(),
+            CliCommands::Set { set_command } => {
+                let action = match set_command {
+                    SetCommands::Count => &MALPromptAction::SetEpisodeCount,
+                    SetCommands::Day => &MALPromptAction::SetAiringDay,
                 };
                 mal_action_prompt(action)?
             }

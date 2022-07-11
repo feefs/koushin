@@ -53,7 +53,7 @@ impl std::fmt::Display for Entry {
 }
 
 pub enum MALPromptAction {
-    SetEpisode,
+    SetEpisodeCount,
     SetAiringDay,
     IncrementEpisode,
 }
@@ -116,7 +116,7 @@ fn update_episode_count(action: &MALPromptAction, auth: &AuthConfig, entry: &Ent
     let request = get_base_update_request(auth, entry);
 
     let new_episode_count = match action {
-        MALPromptAction::SetEpisode => CustomType::new("Input episode count:").with_error_message("Invalid episode count!").prompt()?,
+        MALPromptAction::SetEpisodeCount => CustomType::new("Input episode count:").with_error_message("Invalid episode count!").prompt()?,
         MALPromptAction::IncrementEpisode => entry.watched_episodes + 1,
         _ => unreachable!(),
     };
@@ -190,12 +190,12 @@ pub fn mal_action_prompt(action: &MALPromptAction) -> Result<()> {
         let prompt = Confirm::new(&prompt_text).with_default(true);
 
         confirmed = match action {
-            MALPromptAction::SetEpisode | MALPromptAction::IncrementEpisode => prompt
+            MALPromptAction::SetEpisodeCount | MALPromptAction::IncrementEpisode => prompt
                 .with_help_message(&format!(
                     "{} -> {}/{} episodes",
                     entry.watched_episodes,
                     match action {
-                        MALPromptAction::SetEpisode => "N".to_string(),
+                        MALPromptAction::SetEpisodeCount => "N".to_string(),
                         MALPromptAction::IncrementEpisode => (entry.watched_episodes + 1).to_string(),
                         _ => unreachable!(),
                     },
@@ -211,7 +211,7 @@ pub fn mal_action_prompt(action: &MALPromptAction) -> Result<()> {
 
         if confirmed {
             match action {
-                MALPromptAction::SetEpisode | MALPromptAction::IncrementEpisode => update_episode_count(action, &auth, &entry)?,
+                MALPromptAction::SetEpisodeCount | MALPromptAction::IncrementEpisode => update_episode_count(action, &auth, &entry)?,
                 MALPromptAction::SetAiringDay => update_airing_day(&auth, &entry)?,
             }
             println!("{}", "更新されました!".green());
