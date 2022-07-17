@@ -19,13 +19,13 @@ enum CliCommands {
         /// Set client config
         set_client: bool,
     },
-    /// Display your currently watching anime list in an organized format
+    /// Display your MyAnimeList in an organized format
     List,
-    /// Open your currently watching anime list in the browser
+    /// Open your MyAnimeList in the browser
     Mal,
-    /// Open the page for an anime you are currently watching in the browser
+    /// Open the page for an anime in the browser
     Page,
-    /// Set an attribute for an anime you are currently watching
+    /// Set an attribute for an anime
     Set {
         #[clap(subcommand)]
         set_command: SetCommands,

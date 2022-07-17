@@ -2,7 +2,7 @@
 name = "koushin"
 version = "0.1.9"
 edition = "2021"
-description = "A CLI tool for quickly updating (更新) your episode count on MyAnimeList"
+description = "A CLI tool for quickly updating (更新) your currently watching MyAnimeList"
 
 [dependencies]
 chrono = "0.4.19"
