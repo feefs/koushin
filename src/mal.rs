@@ -111,6 +111,12 @@ fn get_entries(auth: &AuthConfig) -> Result<Vec<Entry>> {
     Ok(entries)
 }
 
+fn select_entry(entries: &Vec<Entry>) -> Result<Entry> {
+    let entries_prompt = Select::new("Select an anime you are currently watching:", entries.to_vec()).with_page_size(20);
+
+    Ok(entries_prompt.prompt()?)
+}
+
 fn get_base_update_request(auth: &AuthConfig, entry: &Entry) -> ureq::Request {
     ureq::patch(&format!("https://api.myanimelist.net/v2/anime/{}/my_list_status", entry.id))
         .set("Authorization", &format!("Bearer {}", auth.access_token))
@@ -185,42 +191,38 @@ pub fn mal_action_prompt(action: &MALPromptAction) -> Result<()> {
     let auth = get_auth_config()?;
     let entries = get_entries(&auth)?;
 
-    let mut confirmed = false;
-    let entries_prompt = Select::new("Select an anime you are currently watching:", entries).with_page_size(20);
+    loop {
+        let entry = select_entry(&entries)?;
 
-    while !confirmed {
-        let entry = entries_prompt.clone().prompt()?;
-        let prompt_text = format!("Update \"{}\"?", entry.title);
-        let prompt = Confirm::new(&prompt_text).with_default(true);
-
-        confirmed = match action {
-            MALPromptAction::SetEpisodeCount | MALPromptAction::IncrementEpisode => prompt
-                .with_help_message(&format!(
-                    "{} -> {}/{} episodes",
-                    entry.watched_episodes,
-                    match action {
-                        MALPromptAction::SetEpisodeCount => "N".to_string(),
-                        MALPromptAction::IncrementEpisode => (entry.watched_episodes + 1).to_string(),
-                        _ => unreachable!(),
-                    },
-                    if entry.total_episodes == 0 {
-                        "?".to_string()
-                    } else {
-                        entry.total_episodes.to_string()
-                    }
-                ))
-                .prompt()?,
-            MALPromptAction::SetAiringDay => prompt.with_help_message("Change airing day").prompt()?,
+        let confirm_prompt_text = format!("Update \"{}\"", entry.title);
+        let help_message_text = match action {
+            MALPromptAction::SetEpisodeCount | MALPromptAction::IncrementEpisode => format!(
+                "{} -> {}/{} episodes",
+                entry.watched_episodes,
+                match action {
+                    MALPromptAction::SetEpisodeCount => "N".to_string(),
+                    MALPromptAction::IncrementEpisode => (entry.watched_episodes + 1).to_string(),
+                    _ => unreachable!(),
+                },
+                if entry.total_episodes == 0 {
+                    "?".to_string()
+                } else {
+                    entry.total_episodes.to_string()
+                }
+            ),
+            MALPromptAction::SetAiringDay => "Change airing day".to_string(),
         };
 
-        if confirmed {
+        if Confirm::new(&confirm_prompt_text).with_default(true).with_help_message(&help_message_text).prompt()? {
             match action {
                 MALPromptAction::SetEpisodeCount | MALPromptAction::IncrementEpisode => update_episode_count(action, &auth, &entry)?,
                 MALPromptAction::SetAiringDay => update_airing_day(&auth, &entry)?,
             }
-            println!("{}", "更新されました!".green());
+            break;
         }
     }
+
+    println!("{}", "更新されました!".green());
 
     Ok(())
 }
@@ -275,9 +277,22 @@ pub fn mal_display_currently_watching_list() -> Result<()> {
 
 pub fn open_my_anime_list() -> Result<()> {
     let auth = get_auth_config()?;
+
     let response: UserInfoResponse =
         ureq::get("https://api.myanimelist.net/v2/users/@me").set("Authorization", &format!("Bearer {}", auth.access_token)).call()?.into_json()?;
 
     open::that(format!("https://myanimelist.net/animelist/{}?status=1", response.name))?;
+
+    Ok(())
+}
+
+pub fn open_anime_page() -> Result<()> {
+    let auth = get_auth_config()?;
+    let entries = get_entries(&auth)?;
+
+    let entry = select_entry(&entries)?;
+
+    open::that(format!("https://myanimelist.net/anime/{}", entry.id))?;
+
     Ok(())
 }

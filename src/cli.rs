@@ -1,6 +1,6 @@
 use crate::config::{config_folder_path, set_client_config};
 use crate::error::Result;
-use crate::mal::{mal_action_prompt, mal_display_currently_watching_list, open_my_anime_list, MALPromptAction};
+use crate::mal::{mal_action_prompt, mal_display_currently_watching_list, open_anime_page, open_my_anime_list, MALPromptAction};
 
 use clap::{Parser, Subcommand};
 
@@ -19,11 +19,13 @@ enum CliCommands {
         /// Set client config
         set_client: bool,
     },
-    /// Display your currently watching anime list
+    /// Display your currently watching anime list in an organized format
     List,
-    /// Launch your currently watching anime list in the browser
+    /// Open your currently watching anime list in the browser
     Mal,
-    /// Set an attribute for an anime on your list
+    /// Open the page for an anime you are currently watching in the browser
+    Page,
+    /// Set an attribute for an anime you are currently watching
     Set {
         #[clap(subcommand)]
         set_command: SetCommands,
@@ -56,6 +58,7 @@ pub fn koushin() -> Result<()> {
             }
             CliCommands::List => mal_display_currently_watching_list()?,
             CliCommands::Mal => open_my_anime_list()?,
+            CliCommands::Page => open_anime_page()?,
             CliCommands::Set { set_command } => {
                 let action = match set_command {
                     SetCommands::Count => &MALPromptAction::SetEpisodeCount,
