@@ -11,6 +11,12 @@ use tiny_http::{Response, Server};
 const PKG_NAME: &str = env!("CARGO_PKG_NAME");
 
 #[derive(Deserialize, Serialize)]
+pub struct AuthConfig {
+    pub access_token: String,
+    pub refresh_token: String,
+}
+
+#[derive(Deserialize, Serialize)]
 pub struct ClientConfig {
     pub client_id: String,
 }
@@ -19,12 +25,6 @@ pub struct ClientConfig {
 enum ClientConfigAction {
     Set,
     Get,
-}
-
-#[derive(Deserialize, Serialize)]
-pub struct AuthConfig {
-    pub access_token: String,
-    pub refresh_token: String,
 }
 
 #[derive(Deserialize)]

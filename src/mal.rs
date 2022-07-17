@@ -6,7 +6,48 @@ use inquire::{Confirm, CustomType, Select, Text};
 use owo_colors::OwoColorize;
 use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize, Serialize)]
+static WEEKDAY_MAPPINGS: phf::Map<&'static str, Weekday> = phf::phf_map! {
+    "monday" => Weekday::Mon,
+    "tuesday" => Weekday::Tue,
+    "wednesday" => Weekday::Wed,
+    "thursday" => Weekday::Thu,
+    "friday" => Weekday::Fri,
+    "saturday" => Weekday::Sat,
+    "sunday" => Weekday::Sun,
+};
+
+static AIRING_DAY_MAPPINGS: phf::Map<u32, &'static str> = phf::phf_map! {
+    0_u32 => "monday",
+    1_u32 => "tuesday",
+    2_u32 => "wednesday",
+    3_u32 => "thursday",
+    4_u32 => "friday",
+    5_u32 => "saturday",
+    6_u32 => "sunday"
+};
+
+#[derive(Debug, Clone)]
+struct Entry {
+    title: String,
+    id: usize,
+    watched_episodes: usize,
+    total_episodes: usize,
+    weekday: Option<Weekday>,
+}
+
+impl std::fmt::Display for Entry {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "[{}] {}", self.watched_episodes.to_string().cyan(), self.title)
+    }
+}
+
+pub enum MALPromptAction {
+    SetEpisodeCount,
+    SetAiringDay,
+    IncrementEpisode,
+}
+
+#[derive(Deserialize)]
 struct AnimeListResponse {
     paging: Paging,
     data: Vec<Data>,
@@ -36,47 +77,10 @@ struct Status {
     updated_at: String,
     tags: Vec<String>,
 }
-
-#[derive(Debug, Clone)]
-struct Entry {
-    title: String,
-    id: usize,
-    watched_episodes: usize,
-    total_episodes: usize,
-    weekday: Option<Weekday>,
+#[derive(Deserialize)]
+struct UserInfoResponse {
+    name: String,
 }
-
-impl std::fmt::Display for Entry {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "[{}] {}", self.watched_episodes.to_string().cyan(), self.title)
-    }
-}
-
-pub enum MALPromptAction {
-    SetEpisodeCount,
-    SetAiringDay,
-    IncrementEpisode,
-}
-
-static WEEKDAY_MAPPINGS: phf::Map<&'static str, Weekday> = phf::phf_map! {
-    "monday" => Weekday::Mon,
-    "tuesday" => Weekday::Tue,
-    "wednesday" => Weekday::Wed,
-    "thursday" => Weekday::Thu,
-    "friday" => Weekday::Fri,
-    "saturday" => Weekday::Sat,
-    "sunday" => Weekday::Sun,
-};
-
-static AIRING_DAY_MAPPINGS: phf::Map<u32, &'static str> = phf::phf_map! {
-    0_u32 => "monday",
-    1_u32 => "tuesday",
-    2_u32 => "wednesday",
-    3_u32 => "thursday",
-    4_u32 => "friday",
-    5_u32 => "saturday",
-    6_u32 => "sunday"
-};
 
 fn get_entries(auth: &AuthConfig) -> Result<Vec<Entry>> {
     let mut entries: Vec<Entry> = Vec::new();
@@ -266,5 +270,14 @@ pub fn mal_display_currently_watching_list() -> Result<()> {
         }
     }
 
+    Ok(())
+}
+
+pub fn open_my_anime_list() -> Result<()> {
+    let auth = get_auth_config()?;
+    let response: UserInfoResponse =
+        ureq::get("https://api.myanimelist.net/v2/users/@me").set("Authorization", &format!("Bearer {}", auth.access_token)).call()?.into_json()?;
+
+    open::that(format!("https://myanimelist.net/animelist/{}?status=1", response.name))?;
     Ok(())
 }
