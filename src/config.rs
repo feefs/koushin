@@ -1,5 +1,4 @@
-use crate::error::Result;
-
+use eyre::Result;
 use inquire::{Password, PasswordDisplayMode};
 use nanoid::nanoid;
 use owo_colors::OwoColorize;

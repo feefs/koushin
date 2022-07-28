@@ -1,7 +1,7 @@
 use crate::config::{get_auth_config, AuthConfig};
-use crate::error::Result;
 
 use chrono::{Datelike, Local, Weekday};
+use eyre::Result;
 use inquire::{Confirm, CustomType, Select, Text};
 use owo_colors::OwoColorize;
 use serde::{Deserialize, Serialize};
@@ -111,7 +111,7 @@ fn get_entries(auth: &AuthConfig) -> Result<Vec<Entry>> {
     Ok(entries)
 }
 
-fn select_entry(entries: &Vec<Entry>) -> Result<Entry> {
+fn select_entry(entries: &[Entry]) -> Result<Entry> {
     let entries_prompt = Select::new("Select an anime you are currently watching:", entries.to_vec()).with_page_size(20);
 
     Ok(entries_prompt.prompt()?)

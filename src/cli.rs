@@ -1,8 +1,8 @@
 use crate::config::{config_folder_path, set_client_config};
-use crate::error::Result;
 use crate::mal::{mal_action_prompt, mal_display_currently_watching_list, open_anime_page, open_my_anime_list, MALPromptAction};
 
 use clap::{Parser, Subcommand};
+use eyre::Result;
 
 #[derive(Parser)]
 #[clap(about, version)]
@@ -42,7 +42,7 @@ enum SetCommands {
 
 pub fn koushin() -> Result<()> {
     if !cfg!(unix) {
-        return Err("Not on Unix!".into());
+        return Err(eyre::eyre!("Not on Unix!"));
     }
 
     let cli = Cli::parse();
