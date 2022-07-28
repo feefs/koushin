@@ -93,17 +93,20 @@ fn get_entries(auth: &AuthConfig) -> Result<Vec<Entry>> {
     loop {
         for data in &page.data {
             entries.push(Entry {
-                title: data.node.title.to_owned(),
+                title: data.node.title.clone(),
                 id: data.node.id,
                 watched_episodes: data.node.my_list_status.num_episodes_watched,
                 total_episodes: data.node.num_episodes,
-                weekday: WEEKDAY_MAPPINGS.get(&data.node.my_list_status.tags.first().unwrap_or(&"".to_string()).to_lowercase()).cloned(),
+                weekday: WEEKDAY_MAPPINGS.get(&data.node.my_list_status.tags.first().unwrap_or(&"".to_string()).to_lowercase()).copied(),
             });
         }
-        if page.paging.next.is_none() {
-            break;
+
+        match page.paging.next {
+            Some(url) => {
+                page = ureq::get(&url).set("Authorization", &format!("Bearer {}", auth.access_token)).call()?.into_json()?;
+            }
+            None => break,
         }
-        page = ureq::get(&page.paging.next.unwrap()).set("Authorization", &format!("Bearer {}", auth.access_token)).call()?.into_json()?;
     }
 
     entries.sort_by(|a, b| a.title.cmp(&b.title));
@@ -128,7 +131,7 @@ fn update_episode_count(action: &MALPromptAction, auth: &AuthConfig, entry: &Ent
     let new_episode_count = match action {
         MALPromptAction::SetEpisodeCount => CustomType::new("Input episode count:").with_error_message("Invalid episode count!").prompt()?,
         MALPromptAction::IncrementEpisode => entry.watched_episodes + 1,
-        _ => unreachable!(),
+        MALPromptAction::SetAiringDay => unreachable!(),
     };
 
     let mut set_completed = false;
@@ -180,7 +183,7 @@ fn update_airing_day(auth: &AuthConfig, entry: &Entry) -> Result<()> {
         ],
     )
     .prompt()?;
-    let airing_day = AIRING_DAY_MAPPINGS.get(&weekday.num_days_from_monday()).cloned().unwrap_or_default();
+    let airing_day = AIRING_DAY_MAPPINGS.get(&weekday.num_days_from_monday()).copied().unwrap_or_default();
 
     request.send_form(&[("tags", airing_day)])?;
 
@@ -202,7 +205,7 @@ pub fn mal_action_prompt(action: &MALPromptAction) -> Result<()> {
                 match action {
                     MALPromptAction::SetEpisodeCount => "N".to_string(),
                     MALPromptAction::IncrementEpisode => (entry.watched_episodes + 1).to_string(),
-                    _ => unreachable!(),
+                    MALPromptAction::SetAiringDay => unreachable!(),
                 },
                 if entry.total_episodes == 0 {
                     "?".to_string()
@@ -258,14 +261,17 @@ pub fn mal_display_currently_watching_list() -> Result<()> {
     for vector in seasonal_entry_vectors {
         match vector.first() {
             Some(entry) => {
-                let weekday = entry.weekday.unwrap();
+                let weekday = match entry.weekday {
+                    Some(w) => w,
+                    None => unreachable!(),
+                };
                 if weekday == today {
                     println!("{}:", weekday.to_string().green().underline());
                 } else {
                     println!("{}:", weekday.to_string().magenta().underline());
                 }
                 for seasonal_entry in vector {
-                    println!("  {}", seasonal_entry)
+                    println!("  {}", seasonal_entry);
                 }
             }
             None => {}

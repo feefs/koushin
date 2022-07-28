@@ -1,8 +1,12 @@
 [package]
 name = "koushin"
-version = "0.1.10"
-edition = "2021"
+version = "0.1.11"
+repository = "https://github.com/feefs/koushin"
 description = "A CLI tool for quickly updating (更新) your currently watching MyAnimeList"
+license = "MIT"
+keywords = ["cli"]
+categories = ["command-line-utilities"]
+edition = "2021"
 
 [dependencies]
 chrono = "0.4.19"

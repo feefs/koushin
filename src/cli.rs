@@ -2,7 +2,7 @@ use crate::config::{config_folder_path, set_client_config};
 use crate::mal::{mal_action_prompt, mal_display_currently_watching_list, open_anime_page, open_my_anime_list, MALPromptAction};
 
 use clap::{Parser, Subcommand};
-use eyre::Result;
+use eyre::{eyre, Result};
 
 #[derive(Parser)]
 #[clap(about, version)]
@@ -42,7 +42,7 @@ enum SetCommands {
 
 pub fn koushin() -> Result<()> {
     if !cfg!(unix) {
-        return Err(eyre::eyre!("Not on Unix!"));
+        return Err(eyre!("Not on Unix!"));
     }
 
     let cli = Cli::parse();
@@ -52,7 +52,10 @@ pub fn koushin() -> Result<()> {
                 if *set_client {
                     set_client_config()?;
                 } else {
-                    let path = config_folder_path()?.into_os_string().into_string().unwrap();
+                    let path = match config_folder_path()?.into_os_string().into_string() {
+                        Ok(p) => p,
+                        Err(_) => return Err(eyre!("Unable to convert OsString to String!")),
+                    };
                     println!("{}", path);
                 }
             }
@@ -64,7 +67,7 @@ pub fn koushin() -> Result<()> {
                     SetCommands::Count => &MALPromptAction::SetEpisodeCount,
                     SetCommands::Day => &MALPromptAction::SetAiringDay,
                 };
-                mal_action_prompt(action)?
+                mal_action_prompt(action)?;
             }
         },
         None => mal_action_prompt(&MALPromptAction::IncrementEpisode)?,

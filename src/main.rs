@@ -1,3 +1,6 @@
+#![warn(clippy::cargo, clippy::pedantic, clippy::unwrap_used)]
+#![allow(clippy::multiple_crate_versions, clippy::module_name_repetitions)]
+
 mod cli;
 mod config;
 mod mal;

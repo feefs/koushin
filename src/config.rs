@@ -1,4 +1,4 @@
-use eyre::Result;
+use eyre::{eyre, Result};
 use inquire::{Password, PasswordDisplayMode};
 use nanoid::nanoid;
 use owo_colors::OwoColorize;
@@ -52,33 +52,34 @@ fn auth_config_path() -> Result<PathBuf> {
 fn setup_config_folder() -> Result<()> {
     let folder_path = config_folder_path()?;
     if !folder_path.exists() {
-        std::fs::create_dir_all(&folder_path)?
+        std::fs::create_dir_all(&folder_path)?;
     };
 
     Ok(())
 }
 
-fn check_client_config(action: ClientConfigAction) -> Result<()> {
+fn check_client_config(action: &ClientConfigAction) -> Result<()> {
     setup_config_folder()?;
     let path = client_config_path()?;
 
-    if !path.exists() || action == ClientConfigAction::Set {
+    if !path.exists() || action == &ClientConfigAction::Set {
         let client_id = Password::new("Input MAL client ID:").with_display_mode(PasswordDisplayMode::Masked).prompt()?;
-        std::fs::write(&path, toml::to_string_pretty(&ClientConfig { client_id }).unwrap())?
+        let contents = toml::to_string_pretty(&ClientConfig { client_id })?;
+        std::fs::write(&path, contents)?;
     };
 
     Ok(())
 }
 
 pub fn get_client_config() -> Result<ClientConfig> {
-    check_client_config(ClientConfigAction::Get)?;
+    check_client_config(&ClientConfigAction::Get)?;
     let client_config = std::fs::read(client_config_path()?)?;
 
     Ok(toml::from_slice(&client_config)?)
 }
 
 pub fn set_client_config() -> Result<()> {
-    check_client_config(ClientConfigAction::Set)?;
+    check_client_config(&ClientConfigAction::Set)?;
 
     Ok(())
 }
@@ -97,12 +98,19 @@ fn open_authorization() -> Result<()> {
     );
 
     println!("Authorize koushin by visiting here:\n{}\n", authorization_url);
-    let server = Server::http("127.0.0.1:8000").unwrap();
+    let server = match Server::http("127.0.0.1:8000") {
+        Ok(s) => s,
+        Err(e) => return Err(eyre!(e.to_string())),
+    };
 
     println!("Listening for authorization code on port 8000...");
+
     let code_request = server.recv()?;
     let qs = QString::from(code_request.url());
-    let code = qs.get("/?code").unwrap();
+    let code = match qs.get("/?code") {
+        Some(c) => c,
+        None => return Err(eyre!("Unable to parse code from query parameters!")),
+    };
     code_request.respond(Response::from_string("Code received!"))?;
 
     let token_response_json: TokenResponse = ureq::post("https://myanimelist.net/v1/oauth2/token")
@@ -114,14 +122,12 @@ fn open_authorization() -> Result<()> {
         ])?
         .into_json()?;
 
-    std::fs::write(
-        &auth_config_path()?,
-        toml::to_string_pretty(&AuthConfig {
-            access_token: token_response_json.access_token,
-            refresh_token: token_response_json.refresh_token,
-        })
-        .unwrap(),
-    )?;
+    let path = auth_config_path()?;
+    let contents = toml::to_string_pretty(&AuthConfig {
+        access_token: token_response_json.access_token,
+        refresh_token: token_response_json.refresh_token,
+    })?;
+    std::fs::write(&path, contents)?;
 
     Ok(())
 }
@@ -140,14 +146,14 @@ fn verify_refresh_auth() -> Result<()> {
                 ("grant_type", "refresh_token"),
             ])?
             .into_json()?;
-        std::fs::write(
-            &auth_config_path()?,
-            toml::to_string_pretty(&AuthConfig {
-                access_token: refresh_response_json.access_token,
-                refresh_token: auth_config.refresh_token,
-            })
-            .unwrap(),
-        )?;
+
+        let path = auth_config_path()?;
+        let contents = toml::to_string_pretty(&AuthConfig {
+            access_token: refresh_response_json.access_token,
+            refresh_token: auth_config.refresh_token,
+        })?;
+        std::fs::write(&path, contents)?;
+
         println!("{}", "Access token refreshed!".cyan());
     }
 
