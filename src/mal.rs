@@ -6,7 +6,7 @@ use inquire::{formatter::OptionFormatter, Confirm, CustomType, Select, Text};
 use owo_colors::OwoColorize;
 use serde::{Deserialize, Serialize};
 
-const MAX_ENTRY_TITLE_LENGTH: usize = 75;
+const MAX_ENTRY_TITLE_LENGTH: usize = 88;
 
 static WEEKDAY_MAPPINGS: phf::Map<&'static str, Weekday> = phf::phf_map! {
     "monday" => Weekday::Mon,
@@ -39,13 +39,11 @@ struct Entry {
 
 impl std::fmt::Display for Entry {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        let text = if self.title.len() >= MAX_ENTRY_TITLE_LENGTH {
-            let mut title = self.title.clone();
-            title.truncate(MAX_ENTRY_TITLE_LENGTH - 4);
-            format!("[{}] {}...", self.watched_episodes.to_string().cyan(), title)
-        } else {
-            format!("[{}] {}", self.watched_episodes.to_string().cyan(), self.title)
-        };
+        let mut text = format!("[{}] {}", self.watched_episodes.to_string().cyan(), self.title);
+        if text.len() > MAX_ENTRY_TITLE_LENGTH {
+            text.truncate(MAX_ENTRY_TITLE_LENGTH - 3);
+            text.push_str("...");
+        }
         write!(f, "{}", text)
     }
 }
