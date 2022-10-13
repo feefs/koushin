@@ -100,7 +100,7 @@ fn open_authorization() -> Result<()> {
     println!("Authorize koushin by visiting here:\n{}\n", authorization_url);
     let server = match Server::http("127.0.0.1:8000") {
         Ok(s) => s,
-        Err(e) => return Err(eyre!(e.to_string())),
+        Err(e) => return Err(eyre!(e)),
     };
 
     println!("Listening for authorization code on port 8000...");

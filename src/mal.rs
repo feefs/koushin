@@ -267,22 +267,19 @@ pub fn mal_display_currently_watching_list() -> Result<()> {
     }
 
     for vector in seasonal_entry_vectors {
-        match vector.first() {
-            Some(entry) => {
-                let weekday = match entry.weekday {
-                    Some(w) => w,
-                    None => unreachable!(),
-                };
-                if weekday == today {
-                    println!("{}:", weekday.to_string().green().underline());
-                } else {
-                    println!("{}:", weekday.to_string().magenta().underline());
-                }
-                for seasonal_entry in vector {
-                    println!("  {}", seasonal_entry);
-                }
+        if let Some(entry) = vector.first() {
+            let weekday = match entry.weekday {
+                Some(w) => w,
+                None => unreachable!(),
+            };
+            if weekday == today {
+                println!("{}:", weekday.to_string().green().underline());
+            } else {
+                println!("{}:", weekday.to_string().magenta().underline());
             }
-            None => {}
+            for seasonal_entry in vector {
+                println!("  {}", seasonal_entry);
+            }
         }
     }
 
