@@ -48,10 +48,10 @@ impl std::fmt::Display for Entry {
     }
 }
 
-pub enum MALPromptAction {
-    SetEpisodeCount,
-    SetAiringDay,
-    IncrementEpisode,
+#[derive(Copy, Clone)]
+pub enum EpisodeAction {
+    Set,
+    Increment,
 }
 
 #[derive(Deserialize)]
@@ -92,7 +92,7 @@ struct UserInfoResponse {
 fn get_entries(auth: &AuthConfig) -> Result<Vec<Entry>> {
     let mut entries: Vec<Entry> = Vec::new();
     let mut page: AnimeListResponse =
-        ureq::get("https://api.myanimelist.net/v2/users/@me/animelist?status=watching&fields=my_list_status,num_episodes,my_list_status{tags}")
+        ureq::get("https://api.myanimelist.net/v2/users/@me/animelist?status=watching&fields=my_list_status{tags,comments},num_episodes")
             .set("Authorization", &format!("Bearer {}", auth.access_token))
             .call()?
             .into_json()?;
@@ -128,124 +128,17 @@ fn select_entry(entries: &[Entry]) -> Result<Entry> {
     Ok(entries_prompt.prompt()?)
 }
 
-fn get_base_update_request(auth: &AuthConfig, entry: &Entry) -> ureq::Request {
+fn base_update_entry_request(auth: &AuthConfig, entry: &Entry) -> ureq::Request {
     ureq::patch(&format!("https://api.myanimelist.net/v2/anime/{}/my_list_status", entry.id))
         .set("Authorization", &format!("Bearer {}", auth.access_token))
 }
 
-fn update_episode_count(action: &MALPromptAction, auth: &AuthConfig, entry: &Entry) -> Result<()> {
-    let request = get_base_update_request(auth, entry);
-
-    let new_episode_count = match action {
-        MALPromptAction::SetEpisodeCount => CustomType::new("Input episode count:").with_error_message("Invalid episode count!").prompt()?,
-        MALPromptAction::IncrementEpisode => entry.watched_episodes + 1,
-        MALPromptAction::SetAiringDay => unreachable!(),
-    };
-
-    let mut set_completed = false;
-    if new_episode_count == entry.total_episodes && entry.total_episodes != 0 {
-        set_completed = Confirm::new(&format!("Set \"{}\" as completed?", entry.title)).with_default(true).prompt()?;
-    }
-
-    if set_completed {
-        let score = CustomType::new("Input score (0-10):")
-            .with_parser({
-                &|n| {
-                    let num = n.parse::<usize>();
-                    match num {
-                        Ok(0..=10) => Ok(num.unwrap_or(10)),
-                        _ => Err(()),
-                    }
-                }
-            })
-            .with_error_message("Invalid score!")
-            .prompt()?;
-        let review = Text::new("Input review:").prompt()?;
-        request.send_form(&[
-            ("num_watched_episodes", new_episode_count.to_string().as_str()),
-            ("status", "completed"),
-            ("score", score.to_string().as_str()),
-            ("tags", &review),
-        ])?;
-    } else {
-        request.send_form(&[("num_watched_episodes", new_episode_count.to_string().as_str())])?;
-    }
-
-    Ok(())
-}
-
-fn update_airing_day(auth: &AuthConfig, entry: &Entry) -> Result<()> {
-    let request = get_base_update_request(auth, entry);
-
-    let prompt_text = format!("Select an airing day to set for \"{}\"", &entry.title);
-    let weekday = Select::new(
-        &prompt_text,
-        vec![
-            Weekday::Mon,
-            Weekday::Tue,
-            Weekday::Wed,
-            Weekday::Thu,
-            Weekday::Fri,
-            Weekday::Sat,
-            Weekday::Sun,
-        ],
-    )
-    .prompt()?;
-    let airing_day = AIRING_DAY_MAPPINGS.get(&weekday.num_days_from_monday()).copied().unwrap_or_default();
-
-    request.send_form(&[("tags", airing_day)])?;
-
-    Ok(())
-}
-
-pub fn mal_action_prompt(action: &MALPromptAction) -> Result<()> {
+pub fn display_currently_watching_list() -> Result<()> {
     let auth = get_auth_config()?;
     let entries = get_entries(&auth)?;
 
-    loop {
-        let entry = select_entry(&entries)?;
-
-        let confirm_prompt_text = format!("Update \"{}\"", entry.title);
-        let help_message_text = match action {
-            MALPromptAction::SetEpisodeCount | MALPromptAction::IncrementEpisode => format!(
-                "{} -> {}/{} episodes",
-                entry.watched_episodes,
-                match action {
-                    MALPromptAction::SetEpisodeCount => "N".to_string(),
-                    MALPromptAction::IncrementEpisode => (entry.watched_episodes + 1).to_string(),
-                    MALPromptAction::SetAiringDay => unreachable!(),
-                },
-                if entry.total_episodes == 0 {
-                    "?".to_string()
-                } else {
-                    entry.total_episodes.to_string()
-                }
-            ),
-            MALPromptAction::SetAiringDay => "Change airing day".to_string(),
-        };
-
-        if Confirm::new(&confirm_prompt_text).with_default(true).with_help_message(&help_message_text).prompt()? {
-            match action {
-                MALPromptAction::SetEpisodeCount | MALPromptAction::IncrementEpisode => update_episode_count(action, &auth, &entry)?,
-                MALPromptAction::SetAiringDay => update_airing_day(&auth, &entry)?,
-            }
-            break;
-        }
-    }
-
-    println!("{}", "更新されました!".green());
-
-    Ok(())
-}
-
-pub fn mal_display_currently_watching_list() -> Result<()> {
-    let auth = get_auth_config()?;
-    let mut entries = get_entries(&auth)?;
-
     let mut seasonal_entry_vectors: Vec<Vec<Entry>> = vec![Vec::new(); 7];
     let mut off_season_entries: Vec<Entry> = Vec::new();
-
-    entries.sort_by(|a, b| a.title.cmp(&b.title));
 
     let today = Local::now().weekday();
 
@@ -286,6 +179,101 @@ pub fn mal_display_currently_watching_list() -> Result<()> {
     Ok(())
 }
 
+pub fn update_episode_count(action: EpisodeAction) -> Result<()> {
+    let auth = get_auth_config()?;
+    let entries = get_entries(&auth)?;
+
+    loop {
+        let entry = select_entry(&entries)?;
+
+        let confirm_prompt_text = format!("Update \"{}\"", entry.title);
+        let help_message_text = format!(
+            "{} -> {}/{} episodes",
+            entry.watched_episodes,
+            match action {
+                EpisodeAction::Set => "N".to_string(),
+                EpisodeAction::Increment => (entry.watched_episodes + 1).to_string(),
+            },
+            if entry.total_episodes == 0 {
+                "?".to_string()
+            } else {
+                entry.total_episodes.to_string()
+            }
+        );
+
+        if Confirm::new(&confirm_prompt_text).with_default(true).with_help_message(&help_message_text).prompt()? {
+            let request = base_update_entry_request(&auth, &entry);
+
+            let new_episode_count: usize = match action {
+                EpisodeAction::Set => CustomType::new("Input episode count:").with_error_message("Invalid episode count!").prompt()?,
+                EpisodeAction::Increment => entry.watched_episodes + 1,
+            };
+
+            let mut set_completed = false;
+            if new_episode_count == entry.total_episodes && entry.total_episodes != 0 {
+                set_completed = Confirm::new(&format!("Set \"{}\" as completed?", entry.title)).with_default(true).prompt()?;
+            }
+
+            if set_completed {
+                let score = CustomType::new("Input score (0-10):")
+                    .with_parser({
+                        &|n| {
+                            let num = n.parse::<usize>();
+                            match num {
+                                Ok(0..=10) => Ok(num.unwrap_or(10)),
+                                _ => Err(()),
+                            }
+                        }
+                    })
+                    .with_error_message("Invalid score!")
+                    .prompt()?;
+                let review = Text::new("Input review:").prompt()?;
+
+                request.send_form(&[
+                    ("num_watched_episodes", new_episode_count.to_string().as_str()),
+                    ("status", "completed"),
+                    ("score", score.to_string().as_str()),
+                    ("tags", &review),
+                ])?;
+            } else {
+                request.send_form(&[("num_watched_episodes", new_episode_count.to_string().as_str())])?;
+            }
+
+            break;
+        }
+    }
+
+    Ok(())
+}
+
+pub fn update_airing_day() -> Result<()> {
+    let auth = get_auth_config()?;
+    let entries = get_entries(&auth)?;
+    let entry = select_entry(&entries)?;
+
+    let request = base_update_entry_request(&auth, &entry);
+
+    let prompt_text = format!("Select an airing day to set for \"{}\"", &entry.title);
+    let weekday = Select::new(
+        &prompt_text,
+        vec![
+            Weekday::Mon,
+            Weekday::Tue,
+            Weekday::Wed,
+            Weekday::Thu,
+            Weekday::Fri,
+            Weekday::Sat,
+            Weekday::Sun,
+        ],
+    )
+    .prompt()?;
+    let airing_day = AIRING_DAY_MAPPINGS.get(&weekday.num_days_from_monday()).copied().unwrap_or_default();
+
+    request.send_form(&[("tags", airing_day)])?;
+
+    Ok(())
+}
+
 pub fn open_my_anime_list() -> Result<()> {
     let auth = get_auth_config()?;
 
@@ -300,7 +288,6 @@ pub fn open_my_anime_list() -> Result<()> {
 pub fn open_anime_page() -> Result<()> {
     let auth = get_auth_config()?;
     let entries = get_entries(&auth)?;
-
     let entry = select_entry(&entries)?;
 
     open::that(format!("https://myanimelist.net/anime/{}", entry.id))?;
