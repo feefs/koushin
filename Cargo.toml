@@ -7,7 +7,6 @@ license = "MIT"
 keywords = ["cli"]
 categories = ["command-line-utilities"]
 edition = "2021"
-build = "gen/build.rs"
 
 [dependencies]
 chrono = "0.4.23"
