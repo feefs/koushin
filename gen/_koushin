@@ -1,0 +1,311 @@
+#compdef koushin
+
+autoload -U is-at-least
+
+_koushin() {
+    typeset -A opt_args
+    typeset -a _arguments_options
+    local ret=1
+
+    if is-at-least 5.2; then
+        _arguments_options=(-s -S -C)
+    else
+        _arguments_options=(-s -C)
+    fi
+
+    local context curcontext="$curcontext" state line
+    _arguments "${_arguments_options[@]}" \
+'-h[Print help information]' \
+'--help[Print help information]' \
+'-V[Print version information]' \
+'--version[Print version information]' \
+":: :_koushin_commands" \
+"*::: :->koushin" \
+&& ret=0
+    case $state in
+    (koushin)
+        words=($line[1] "${words[@]}")
+        (( CURRENT += 1 ))
+        curcontext="${curcontext%:*:*}:koushin-command-$line[1]:"
+        case $line[1] in
+            (list)
+_arguments "${_arguments_options[@]}" \
+'-h[Print help information]' \
+'--help[Print help information]' \
+&& ret=0
+;;
+(set)
+_arguments "${_arguments_options[@]}" \
+'-h[Print help information]' \
+'--help[Print help information]' \
+":: :_koushin__set_commands" \
+"*::: :->set" \
+&& ret=0
+
+    case $state in
+    (set)
+        words=($line[1] "${words[@]}")
+        (( CURRENT += 1 ))
+        curcontext="${curcontext%:*:*}:koushin-set-command-$line[1]:"
+        case $line[1] in
+            (count)
+_arguments "${_arguments_options[@]}" \
+'-h[Print help information]' \
+'--help[Print help information]' \
+&& ret=0
+;;
+(day)
+_arguments "${_arguments_options[@]}" \
+'-h[Print help information]' \
+'--help[Print help information]' \
+&& ret=0
+;;
+(help)
+_arguments "${_arguments_options[@]}" \
+":: :_koushin__set__help_commands" \
+"*::: :->help" \
+&& ret=0
+
+    case $state in
+    (help)
+        words=($line[1] "${words[@]}")
+        (( CURRENT += 1 ))
+        curcontext="${curcontext%:*:*}:koushin-set-help-command-$line[1]:"
+        case $line[1] in
+            (count)
+_arguments "${_arguments_options[@]}" \
+&& ret=0
+;;
+(day)
+_arguments "${_arguments_options[@]}" \
+&& ret=0
+;;
+(help)
+_arguments "${_arguments_options[@]}" \
+&& ret=0
+;;
+        esac
+    ;;
+esac
+;;
+        esac
+    ;;
+esac
+;;
+(mal)
+_arguments "${_arguments_options[@]}" \
+'-h[Print help information]' \
+'--help[Print help information]' \
+&& ret=0
+;;
+(page)
+_arguments "${_arguments_options[@]}" \
+'-h[Print help information]' \
+'--help[Print help information]' \
+&& ret=0
+;;
+(config)
+_arguments "${_arguments_options[@]}" \
+'-s[Set client config]' \
+'--set-client[Set client config]' \
+'-h[Print help information]' \
+'--help[Print help information]' \
+&& ret=0
+;;
+(help)
+_arguments "${_arguments_options[@]}" \
+":: :_koushin__help_commands" \
+"*::: :->help" \
+&& ret=0
+
+    case $state in
+    (help)
+        words=($line[1] "${words[@]}")
+        (( CURRENT += 1 ))
+        curcontext="${curcontext%:*:*}:koushin-help-command-$line[1]:"
+        case $line[1] in
+            (list)
+_arguments "${_arguments_options[@]}" \
+&& ret=0
+;;
+(set)
+_arguments "${_arguments_options[@]}" \
+":: :_koushin__help__set_commands" \
+"*::: :->set" \
+&& ret=0
+
+    case $state in
+    (set)
+        words=($line[1] "${words[@]}")
+        (( CURRENT += 1 ))
+        curcontext="${curcontext%:*:*}:koushin-help-set-command-$line[1]:"
+        case $line[1] in
+            (count)
+_arguments "${_arguments_options[@]}" \
+&& ret=0
+;;
+(day)
+_arguments "${_arguments_options[@]}" \
+&& ret=0
+;;
+        esac
+    ;;
+esac
+;;
+(mal)
+_arguments "${_arguments_options[@]}" \
+&& ret=0
+;;
+(page)
+_arguments "${_arguments_options[@]}" \
+&& ret=0
+;;
+(config)
+_arguments "${_arguments_options[@]}" \
+&& ret=0
+;;
+(help)
+_arguments "${_arguments_options[@]}" \
+&& ret=0
+;;
+        esac
+    ;;
+esac
+;;
+        esac
+    ;;
+esac
+}
+
+(( $+functions[_koushin_commands] )) ||
+_koushin_commands() {
+    local commands; commands=(
+'list:Display your MyAnimeList in an organized format' \
+'set:Set an attribute for an anime' \
+'mal:Open your MyAnimeList in the browser' \
+'page:Open the page for an anime in the browser' \
+'config:Interact with the config' \
+'help:Print this message or the help of the given subcommand(s)' \
+    )
+    _describe -t commands 'koushin commands' commands "$@"
+}
+(( $+functions[_koushin__config_commands] )) ||
+_koushin__config_commands() {
+    local commands; commands=()
+    _describe -t commands 'koushin config commands' commands "$@"
+}
+(( $+functions[_koushin__help__config_commands] )) ||
+_koushin__help__config_commands() {
+    local commands; commands=()
+    _describe -t commands 'koushin help config commands' commands "$@"
+}
+(( $+functions[_koushin__help__set__count_commands] )) ||
+_koushin__help__set__count_commands() {
+    local commands; commands=()
+    _describe -t commands 'koushin help set count commands' commands "$@"
+}
+(( $+functions[_koushin__set__count_commands] )) ||
+_koushin__set__count_commands() {
+    local commands; commands=()
+    _describe -t commands 'koushin set count commands' commands "$@"
+}
+(( $+functions[_koushin__set__help__count_commands] )) ||
+_koushin__set__help__count_commands() {
+    local commands; commands=()
+    _describe -t commands 'koushin set help count commands' commands "$@"
+}
+(( $+functions[_koushin__help__set__day_commands] )) ||
+_koushin__help__set__day_commands() {
+    local commands; commands=()
+    _describe -t commands 'koushin help set day commands' commands "$@"
+}
+(( $+functions[_koushin__set__day_commands] )) ||
+_koushin__set__day_commands() {
+    local commands; commands=()
+    _describe -t commands 'koushin set day commands' commands "$@"
+}
+(( $+functions[_koushin__set__help__day_commands] )) ||
+_koushin__set__help__day_commands() {
+    local commands; commands=()
+    _describe -t commands 'koushin set help day commands' commands "$@"
+}
+(( $+functions[_koushin__help_commands] )) ||
+_koushin__help_commands() {
+    local commands; commands=(
+'list:Display your MyAnimeList in an organized format' \
+'set:Set an attribute for an anime' \
+'mal:Open your MyAnimeList in the browser' \
+'page:Open the page for an anime in the browser' \
+'config:Interact with the config' \
+'help:Print this message or the help of the given subcommand(s)' \
+    )
+    _describe -t commands 'koushin help commands' commands "$@"
+}
+(( $+functions[_koushin__help__help_commands] )) ||
+_koushin__help__help_commands() {
+    local commands; commands=()
+    _describe -t commands 'koushin help help commands' commands "$@"
+}
+(( $+functions[_koushin__set__help_commands] )) ||
+_koushin__set__help_commands() {
+    local commands; commands=(
+'count:Set episode count' \
+'day:Set airing day' \
+'help:Print this message or the help of the given subcommand(s)' \
+    )
+    _describe -t commands 'koushin set help commands' commands "$@"
+}
+(( $+functions[_koushin__set__help__help_commands] )) ||
+_koushin__set__help__help_commands() {
+    local commands; commands=()
+    _describe -t commands 'koushin set help help commands' commands "$@"
+}
+(( $+functions[_koushin__help__list_commands] )) ||
+_koushin__help__list_commands() {
+    local commands; commands=()
+    _describe -t commands 'koushin help list commands' commands "$@"
+}
+(( $+functions[_koushin__list_commands] )) ||
+_koushin__list_commands() {
+    local commands; commands=()
+    _describe -t commands 'koushin list commands' commands "$@"
+}
+(( $+functions[_koushin__help__mal_commands] )) ||
+_koushin__help__mal_commands() {
+    local commands; commands=()
+    _describe -t commands 'koushin help mal commands' commands "$@"
+}
+(( $+functions[_koushin__mal_commands] )) ||
+_koushin__mal_commands() {
+    local commands; commands=()
+    _describe -t commands 'koushin mal commands' commands "$@"
+}
+(( $+functions[_koushin__help__page_commands] )) ||
+_koushin__help__page_commands() {
+    local commands; commands=()
+    _describe -t commands 'koushin help page commands' commands "$@"
+}
+(( $+functions[_koushin__page_commands] )) ||
+_koushin__page_commands() {
+    local commands; commands=()
+    _describe -t commands 'koushin page commands' commands "$@"
+}
+(( $+functions[_koushin__help__set_commands] )) ||
+_koushin__help__set_commands() {
+    local commands; commands=(
+'count:Set episode count' \
+'day:Set airing day' \
+    )
+    _describe -t commands 'koushin help set commands' commands "$@"
+}
+(( $+functions[_koushin__set_commands] )) ||
+_koushin__set_commands() {
+    local commands; commands=(
+'count:Set episode count' \
+'day:Set airing day' \
+'help:Print this message or the help of the given subcommand(s)' \
+    )
+    _describe -t commands 'koushin set commands' commands "$@"
+}
+
+_koushin "$@"
