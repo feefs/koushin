@@ -11,13 +11,26 @@ jobs:
     - name: Check out repository
       uses: actions/checkout@v3
 
-    - name: Set up Rust
+    - name: Set up toolchain
       uses: actions-rs/toolchain@v1
       with:
+        profile: minimal
         toolchain: stable
-        default: true
+        components: rustfmt, clippy
 
-    - name: Compile
+    - name: rustfmt
+      uses: actions-rs/cargo@v1
+      with:
+        command: fmt
+        args: --all -- --check
+
+    - name: clippy
+      uses: actions-rs/cargo@v1
+      with:
+        command: clippy
+        args: -- -D warnings
+
+    - name: build
       uses: actions-rs/cargo@v1
       with:
         command: build

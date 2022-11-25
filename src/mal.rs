@@ -104,7 +104,7 @@ fn get_entries(auth: &AuthConfig) -> Result<Vec<Entry>> {
                 id: data.node.id,
                 watched_episodes: data.node.my_list_status.num_episodes_watched,
                 total_episodes: data.node.num_episodes,
-                weekday: WEEKDAY_MAPPINGS.get(&data.node.my_list_status.tags.first().unwrap_or(&"".to_string()).to_lowercase()).copied(),
+                weekday: WEEKDAY_MAPPINGS.get(&data.node.my_list_status.tags.first().unwrap_or(&String::new()).to_lowercase()).copied(),
             });
         }
 
