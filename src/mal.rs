@@ -5,6 +5,7 @@ use eyre::Result;
 use inquire::{formatter::OptionFormatter, Confirm, CustomType, Select, Text};
 use owo_colors::OwoColorize;
 use serde::{Deserialize, Serialize};
+use spinners::{Spinner, Spinners};
 
 const MAX_ENTRY_TITLE_LENGTH: usize = 88;
 
@@ -89,6 +90,15 @@ struct UserInfoResponse {
     name: String,
 }
 
+fn start_spinner() -> Spinner {
+    Spinner::new(Spinners::Arc, String::new())
+}
+
+fn stop_spinner(spinner: &mut Spinner) {
+    spinner.stop();
+    print!("{}", termion::cursor::Left(2));
+}
+
 fn get_entries(auth: &AuthConfig) -> Result<Vec<Entry>> {
     let mut entries: Vec<Entry> = Vec::new();
     let mut page: AnimeListResponse =
@@ -134,8 +144,10 @@ fn base_update_entry_request(auth: &AuthConfig, entry: &Entry) -> ureq::Request 
 }
 
 pub fn display_currently_watching_list() -> Result<()> {
+    let mut sp = start_spinner();
     let auth = get_auth_config()?;
     let entries = get_entries(&auth)?;
+    stop_spinner(&mut sp);
 
     let mut seasonal_entry_vectors: Vec<Vec<Entry>> = vec![Vec::new(); 7];
     let mut off_season_entries: Vec<Entry> = Vec::new();
@@ -180,8 +192,10 @@ pub fn display_currently_watching_list() -> Result<()> {
 }
 
 pub fn update_episode_count(action: EpisodeAction) -> Result<()> {
+    let mut sp = start_spinner();
     let auth = get_auth_config()?;
     let entries = get_entries(&auth)?;
+    stop_spinner(&mut sp);
 
     loop {
         let entry = select_entry(&entries)?;
@@ -247,8 +261,11 @@ pub fn update_episode_count(action: EpisodeAction) -> Result<()> {
 }
 
 pub fn update_airing_day() -> Result<()> {
+    let mut sp = start_spinner();
     let auth = get_auth_config()?;
     let entries = get_entries(&auth)?;
+    stop_spinner(&mut sp);
+
     let entry = select_entry(&entries)?;
 
     let request = base_update_entry_request(&auth, &entry);
@@ -275,7 +292,9 @@ pub fn update_airing_day() -> Result<()> {
 }
 
 pub fn open_my_anime_list() -> Result<()> {
+    let mut sp = start_spinner();
     let auth = get_auth_config()?;
+    stop_spinner(&mut sp);
 
     let response: UserInfoResponse =
         ureq::get("https://api.myanimelist.net/v2/users/@me").set("Authorization", &format!("Bearer {}", auth.access_token)).call()?.into_json()?;
@@ -286,8 +305,11 @@ pub fn open_my_anime_list() -> Result<()> {
 }
 
 pub fn open_anime_page() -> Result<()> {
+    let mut sp = start_spinner();
     let auth = get_auth_config()?;
     let entries = get_entries(&auth)?;
+    stop_spinner(&mut sp);
+
     let entry = select_entry(&entries)?;
 
     open::that(format!("https://myanimelist.net/anime/{}", entry.id))?;
