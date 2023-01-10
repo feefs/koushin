@@ -44,7 +44,7 @@ impl std::fmt::Display for Entry {
             text.truncate(MAX_ENTRY_TITLE_LENGTH - 3);
             text.push_str("...");
         }
-        write!(f, "{}", text)
+        write!(f, "{text}")
     }
 }
 
@@ -155,7 +155,7 @@ pub fn display_currently_watching_list() -> Result<()> {
     if !off_season_entries.is_empty() {
         println!("{}:", "Off-season".magenta().underline());
         for off_season_entry in off_season_entries {
-            println!("  {}", off_season_entry);
+            println!("  {off_season_entry}");
         }
     }
 
@@ -171,7 +171,7 @@ pub fn display_currently_watching_list() -> Result<()> {
                 println!("{}:", weekday.to_string().magenta().underline());
             }
             for seasonal_entry in vector {
-                println!("  {}", seasonal_entry);
+                println!("  {seasonal_entry}");
             }
         }
     }

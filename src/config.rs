@@ -93,11 +93,11 @@ fn open_authorization() -> Result<()> {
     let verifier = nanoid!(128);
     let challenge = verifier.clone();
     let authorization_url = format!(
-        "https://myanimelist.net/v1/oauth2/authorize?response_type=code&client_id={}&code_challenge={}",
-        config.client_id, challenge
+        "https://myanimelist.net/v1/oauth2/authorize?response_type=code&client_id={}&code_challenge={challenge}",
+        config.client_id
     );
 
-    println!("Authorize koushin by visiting here:\n{}\n", authorization_url);
+    println!("Authorize koushin by visiting here:\n{authorization_url}\n");
     let server = match Server::http("127.0.0.1:8000") {
         Ok(s) => s,
         Err(e) => return Err(eyre!(e)),
@@ -127,7 +127,7 @@ fn open_authorization() -> Result<()> {
         access_token: token_response_json.access_token,
         refresh_token: token_response_json.refresh_token,
     })?;
-    std::fs::write(&path, contents)?;
+    std::fs::write(path, contents)?;
 
     Ok(())
 }
@@ -152,7 +152,7 @@ fn verify_refresh_auth() -> Result<()> {
             access_token: refresh_response_json.access_token,
             refresh_token: auth_config.refresh_token,
         })?;
-        std::fs::write(&path, contents)?;
+        std::fs::write(path, contents)?;
 
         println!("{}", "Access token refreshed!".cyan());
     }

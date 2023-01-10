@@ -34,7 +34,7 @@ fn koushin() -> Result<()> {
                         Ok(p) => p,
                         Err(_) => return Err(eyre!("Unable to convert OsString to String!")),
                     };
-                    println!("{}", path);
+                    println!("{path}");
                 }
             }
         },
@@ -51,7 +51,7 @@ fn main() {
     std::process::exit(match koushin() {
         Ok(_) => 0,
         Err(e) => {
-            println!("{} {}", "Error:".red(), e);
+            println!("{} {e}", "Error:".red());
             1
         }
     })
