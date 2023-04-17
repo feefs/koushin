@@ -173,9 +173,8 @@ pub fn display_currently_watching_list() -> Result<()> {
 
     for vector in seasonal_entry_vectors {
         if let Some(entry) = vector.first() {
-            let weekday = match entry.weekday {
-                Some(w) => w,
-                None => unreachable!(),
+            let Some(weekday) = entry.weekday else {
+                unreachable!();
             };
             if weekday == today {
                 println!("{}:", weekday.to_string().green().underline());
