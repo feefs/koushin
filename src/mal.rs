@@ -6,6 +6,7 @@ use inquire::{formatter::OptionFormatter, Confirm, CustomType, Select, Text};
 use owo_colors::OwoColorize;
 use serde::{Deserialize, Serialize};
 use spinners::{Spinner, Spinners};
+use std::collections::VecDeque;
 
 const MAX_ENTRY_TITLE_LENGTH: usize = 88;
 
@@ -269,20 +270,22 @@ pub fn update_airing_day() -> Result<()> {
 
     let request = base_update_entry_request(&auth, &entry);
 
+    let mut days = VecDeque::from([
+        Weekday::Mon,
+        Weekday::Tue,
+        Weekday::Wed,
+        Weekday::Thu,
+        Weekday::Fri,
+        Weekday::Sat,
+        Weekday::Sun,
+    ]);
+    for _ in 0..(Local::now().weekday().num_days_from_monday()) {
+        let day = days.pop_front().expect("days VecDeque shouldn't be empty");
+        days.push_back(day);
+    }
+
     let prompt_text = format!("Select an airing day to set for \"{}\"", &entry.title);
-    let weekday = Select::new(
-        &prompt_text,
-        vec![
-            Weekday::Mon,
-            Weekday::Tue,
-            Weekday::Wed,
-            Weekday::Thu,
-            Weekday::Fri,
-            Weekday::Sat,
-            Weekday::Sun,
-        ],
-    )
-    .prompt()?;
+    let weekday = Select::new(&prompt_text, days.into()).prompt()?;
     let airing_day = AIRING_DAY_MAPPINGS.get(&weekday.num_days_from_monday()).copied().unwrap_or_default();
 
     request.send_form(&[("tags", airing_day)])?;
