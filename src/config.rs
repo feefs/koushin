@@ -73,9 +73,9 @@ fn check_client_config(action: &ClientConfigAction) -> Result<()> {
 
 pub fn get_client_config() -> Result<ClientConfig> {
     check_client_config(&ClientConfigAction::Get)?;
-    let client_config = std::fs::read(client_config_path()?)?;
+    let client_config = std::fs::read_to_string(client_config_path()?)?;
 
-    Ok(toml::from_slice(&client_config)?)
+    Ok(toml::from_str(&client_config)?)
 }
 
 pub fn set_client_config() -> Result<()> {
@@ -85,7 +85,7 @@ pub fn set_client_config() -> Result<()> {
 }
 
 fn deserialize_auth_config() -> Result<AuthConfig> {
-    Ok(toml::from_slice(&std::fs::read(auth_config_path()?)?)?)
+    Ok(toml::from_str(&std::fs::read_to_string(auth_config_path()?)?)?)
 }
 
 fn open_authorization() -> Result<()> {

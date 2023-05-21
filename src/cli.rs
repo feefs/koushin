@@ -9,16 +9,20 @@ pub struct Cli {
 
 #[derive(Subcommand)]
 pub enum CliCommands {
-    /// Display your MyAnimeList in an organized format
+    /// Display your MyAnimeList in an organized format [alias: l]
+    #[command(alias = "l")]
     List,
-    /// Set an attribute for an anime
+    /// Set an attribute for an anime                   [alias: s]
+    #[command(alias = "s")]
     Set {
         #[clap(subcommand)]
         set_command: SetCommands,
     },
-    /// Open your MyAnimeList in the browser
+    /// Open your MyAnimeList in the browser            [alias: m]
+    #[command(alias = "m")]
     Mal,
-    /// Open the page for an anime in the browser
+    /// Open the page for an anime in the browser       [alias: p]
+    #[command(alias = "p")]
     Page,
     /// Interact with the config
     Config {
