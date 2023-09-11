@@ -1,5 +1,6 @@
 #![warn(clippy::cargo, clippy::pedantic, clippy::unwrap_used)]
 #![allow(clippy::multiple_crate_versions, clippy::module_name_repetitions)]
+#![deny(unused_crate_dependencies)]
 
 mod cli;
 mod config;

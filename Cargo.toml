@@ -1,6 +1,6 @@
 [package]
 name = "koushin"
-version = "0.2.3"
+version = "0.2.4"
 repository = "https://github.com/feefs/koushin"
 description = "A CLI tool for quickly updating (更新) your currently watching MyAnimeList"
 license = "MIT"
@@ -11,6 +11,7 @@ edition = "2021"
 [dependencies]
 chrono = "0.4.30"
 clap = { version = "4.4.2", features = ["derive"] }
+crossterm = "0.27.0"
 eyre = "0.6.8"
 inquire = "0.6.2"
 nanoid = "0.4.0"
@@ -19,9 +20,7 @@ owo-colors = "3.5.0"
 phf = { version = "0.11.2", features = ["macros"] }
 qstring = "0.7.2"
 serde = { version = "1.0.188", features = ["derive"] }
-serde_json = "1.0.106"
 spinners = "4.1.0"
-termion = "2.0.1"
 tiny_http = "0.12.0"
 toml = "0.7.8"
 ureq = { version = "2.7.1", features = ["json"] }
