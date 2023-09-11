@@ -9,23 +9,23 @@ categories = ["command-line-utilities"]
 edition = "2021"
 
 [dependencies]
-chrono = "0.4.24"
-clap = { version = "4.2.7", features = ["derive"] }
+chrono = "0.4.30"
+clap = { version = "4.4.2", features = ["derive"] }
 eyre = "0.6.8"
 inquire = "0.6.2"
 nanoid = "0.4.0"
-open = "4.1.0"
+open = "5.0.0"
 owo-colors = "3.5.0"
-phf = { version = "0.11.1", features = ["macros"] }
+phf = { version = "0.11.2", features = ["macros"] }
 qstring = "0.7.2"
-serde = { version = "1.0.163", features = ["derive"] }
-serde_json = "1.0.96"
+serde = { version = "1.0.188", features = ["derive"] }
+serde_json = "1.0.106"
 spinners = "4.1.0"
 termion = "2.0.1"
 tiny_http = "0.12.0"
-toml = "0.7.3"
-ureq = { version = "2.6.2", features = ["json"] }
+toml = "0.7.8"
+ureq = { version = "2.7.1", features = ["json"] }
 
 [build-dependencies]
-clap = { version = "4.2.7", features = ["derive"] }
-clap_complete = "4.2.3"
+clap = { version = "4.4.2", features = ["derive"] }
+clap_complete = "4.4.1"

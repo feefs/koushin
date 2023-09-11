@@ -108,7 +108,7 @@ fn open_authorization() -> Result<()> {
     let code_request = server.recv()?;
     let qs = QString::from(code_request.url());
     let Some(code) = qs.get("/?code") else {
-        return Err(eyre!("Unable to parse code from query parameters!")) 
+        return Err(eyre!("Unable to parse code from query parameters!"));
     };
     code_request.respond(Response::from_string("Code received!"))?;
 

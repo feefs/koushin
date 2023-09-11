@@ -31,7 +31,7 @@ fn koushin() -> Result<()> {
                     config::set_client_config()?;
                 } else {
                     let Ok(path) = config::config_folder_path()?.into_os_string().into_string() else {
-                        return Err(eyre!("Unable to convert OsString to String!"))
+                        return Err(eyre!("Unable to convert OsString to String!"));
                     };
                     println!("{path}");
                 }
