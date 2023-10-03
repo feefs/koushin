@@ -1,11 +1,11 @@
 use crate::config::{get_auth_config, AuthConfig};
+use crate::spinner::{start_spinner, stop_spinner};
 
 use chrono::{Datelike, Local, Weekday};
 use eyre::Result;
 use inquire::{formatter::OptionFormatter, Confirm, CustomType, Select, Text};
 use owo_colors::OwoColorize;
 use serde::{Deserialize, Serialize};
-use spinners::{Spinner, Spinners};
 use std::collections::VecDeque;
 
 const MAX_ENTRY_TITLE_LENGTH: usize = 88;
@@ -91,16 +91,6 @@ struct UserInfoResponse {
     name: String,
 }
 
-fn start_spinner() -> Result<Spinner> {
-    crossterm::execute!(std::io::stdout(), crossterm::cursor::SavePosition)?;
-    Ok(Spinner::new(Spinners::Arc, String::new()))
-}
-
-fn stop_spinner(spinner: &mut Spinner) -> Result<()> {
-    spinner.stop();
-    crossterm::execute!(std::io::stdout(), crossterm::cursor::RestorePosition)?;
-    Ok(())
-}
 
 fn get_entries(auth: &AuthConfig) -> Result<Vec<Entry>> {
     let mut entries: Vec<Entry> = Vec::new();

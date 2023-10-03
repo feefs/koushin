@@ -5,6 +5,7 @@
 mod cli;
 mod config;
 mod mal;
+mod spinner;
 
 use eyre::{eyre, Result};
 use owo_colors::OwoColorize;
