@@ -37,29 +37,23 @@ struct RefreshResponse {
     access_token: String,
 }
 
-pub fn config_folder_path() -> Result<PathBuf> {
-    Ok(std::path::PathBuf::from(std::env::var("HOME")?).join(".config").join(PKG_NAME))
+fn xdg_dirs() -> Result<xdg::BaseDirectories> {
+    Ok(xdg::BaseDirectories::with_prefix(PKG_NAME)?)
 }
 
 fn client_config_path() -> Result<PathBuf> {
-    Ok(config_folder_path()?.join("config.toml"))
+    Ok(xdg_dirs()?.place_config_file("config.toml")?)
 }
 
 fn auth_config_path() -> Result<PathBuf> {
-    Ok(config_folder_path()?.join("auth.toml"))
+    Ok(xdg_dirs()?.place_config_file("auth.toml")?)
 }
 
-fn setup_config_folder() -> Result<()> {
-    let folder_path = config_folder_path()?;
-    if !folder_path.exists() {
-        std::fs::create_dir_all(&folder_path)?;
-    };
-
-    Ok(())
+pub fn config_folder_path() -> Result<PathBuf> {
+    Ok(xdg_dirs()?.get_config_home())
 }
 
 fn check_client_config(action: &ClientConfigAction) -> Result<()> {
-    setup_config_folder()?;
     let path = client_config_path()?;
 
     if !path.exists() || action == &ClientConfigAction::Set {
@@ -160,7 +154,6 @@ fn verify_refresh_auth() -> Result<()> {
 }
 
 pub fn get_auth_config() -> Result<AuthConfig> {
-    setup_config_folder()?;
     let path = auth_config_path()?;
     if !path.exists() {
         open_authorization()?;
