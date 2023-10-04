@@ -31,16 +31,14 @@ pub struct AuthConfig {
 }
 
 impl AuthConfig {
-    pub fn new() -> Result<Self> {
-        let mut spinner = spinner::start_spinner()?;
+    pub fn new(sp: &mut spinners::Spinner) -> Result<Self> {
         let auth_path = auth_config_path()?;
         if !auth_path.exists() {
-            spinner::stop_spinner(spinner)?;
+            spinner::stop_spinner(sp)?;
             open_authorization()?;
-            spinner = spinner::start_spinner()?;
+            *sp = spinner::start_spinner()?;
         }
         verify_refresh_auth()?;
-        spinner::stop_spinner(spinner)?;
         deserialize_auth_config()
     }
 }

@@ -61,17 +61,14 @@ struct AnimeListResponse {
     paging: Paging,
     data: Vec<Data>,
 }
-
 #[derive(Deserialize, Serialize)]
 struct Paging {
     next: Option<String>,
 }
-
 #[derive(Deserialize, Serialize)]
 struct Data {
     node: Node,
 }
-
 #[derive(Deserialize, Serialize)]
 struct Node {
     title: String,
@@ -79,7 +76,6 @@ struct Node {
     num_episodes: usize,
     my_list_status: Status,
 }
-
 #[derive(Deserialize, Serialize)]
 struct Status {
     num_episodes_watched: usize,
@@ -135,9 +131,9 @@ fn base_update_entry_request(auth: &AuthConfig, entry: &Entry) -> ureq::Request 
         .set("Authorization", &format!("Bearer {}", auth.access_token))
 }
 
-pub fn display_currently_watching_list(auth: &AuthConfig, spinner: spinners::Spinner) -> Result<()> {
-    let entries = get_entries(&auth)?;
-    spinner::stop_spinner(spinner)?;
+pub fn display_currently_watching_list(auth: &AuthConfig, sp: &mut spinners::Spinner) -> Result<()> {
+    let entries = get_entries(auth)?;
+    spinner::stop_spinner(sp)?;
 
     let mut seasonal_entry_vectors: Vec<Vec<Entry>> = vec![Vec::new(); 7];
     let mut off_season_entries: Vec<Entry> = Vec::new();
@@ -180,9 +176,9 @@ pub fn display_currently_watching_list(auth: &AuthConfig, spinner: spinners::Spi
     Ok(())
 }
 
-pub fn update_episode_count(auth: &AuthConfig, spinner: spinners::Spinner, action: EpisodeAction) -> Result<()> {
-    let entries = get_entries(&auth)?;
-    spinner::stop_spinner(spinner)?;
+pub fn update_episode_count(auth: &AuthConfig, sp: &mut spinners::Spinner, action: EpisodeAction) -> Result<()> {
+    let entries = get_entries(auth)?;
+    spinner::stop_spinner(sp)?;
 
     loop {
         let entry = select_entry(&entries)?;
@@ -203,7 +199,7 @@ pub fn update_episode_count(auth: &AuthConfig, spinner: spinners::Spinner, actio
         );
 
         if Confirm::new(&confirm_prompt_text).with_default(true).with_help_message(&help_message_text).prompt()? {
-            let request = base_update_entry_request(&auth, &entry);
+            let request = base_update_entry_request(auth, &entry);
 
             let new_episode_count: usize = match action {
                 EpisodeAction::Set => CustomType::new("Input episode count:").with_error_message("Invalid episode count!").prompt()?,
@@ -247,13 +243,13 @@ pub fn update_episode_count(auth: &AuthConfig, spinner: spinners::Spinner, actio
     Ok(())
 }
 
-pub fn update_airing_day(auth: &AuthConfig, spinner: spinners::Spinner) -> Result<()> {
-    let entries = get_entries(&auth)?;
-    spinner::stop_spinner(spinner)?;
+pub fn update_airing_day(auth: &AuthConfig, sp: &mut spinners::Spinner) -> Result<()> {
+    let entries = get_entries(auth)?;
+    spinner::stop_spinner(sp)?;
 
     let entry = select_entry(&entries)?;
 
-    let request = base_update_entry_request(&auth, &entry);
+    let request = base_update_entry_request(auth, &entry);
 
     let mut days = VecDeque::from([
         Weekday::Mon,
@@ -278,8 +274,8 @@ pub fn update_airing_day(auth: &AuthConfig, spinner: spinners::Spinner) -> Resul
     Ok(())
 }
 
-pub fn open_my_anime_list(auth: &AuthConfig, spinner: spinners::Spinner) -> Result<()> {
-    spinner::stop_spinner(spinner)?;
+pub fn open_my_anime_list(auth: &AuthConfig, sp: &mut spinners::Spinner) -> Result<()> {
+    spinner::stop_spinner(sp)?;
 
     let response: UserInfoResponse =
         ureq::get("https://api.myanimelist.net/v2/users/@me").set("Authorization", &format!("Bearer {}", auth.access_token)).call()?.into_json()?;
@@ -289,9 +285,9 @@ pub fn open_my_anime_list(auth: &AuthConfig, spinner: spinners::Spinner) -> Resu
     Ok(())
 }
 
-pub fn open_anime_page(auth: &AuthConfig, spinner: spinners::Spinner) -> Result<()> {
-    let entries = get_entries(&auth)?;
-    spinner::stop_spinner(spinner)?;
+pub fn open_anime_page(auth: &AuthConfig, sp: &mut spinners::Spinner) -> Result<()> {
+    let entries = get_entries(auth)?;
+    spinner::stop_spinner(sp)?;
 
     let entry = select_entry(&entries)?;
 

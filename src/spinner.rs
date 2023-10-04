@@ -11,7 +11,7 @@ pub fn start_spinner() -> Result<Spinner> {
     Ok(Spinner::new(Spinners::Arc, String::new()))
 }
 
-pub fn stop_spinner(mut spinner: Spinner) -> Result<()> {
+pub fn stop_spinner(spinner: &mut Spinner) -> Result<()> {
     spinner.stop();
     io::stdout().execute(RestorePosition)?;
     Ok(())
