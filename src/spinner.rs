@@ -1,14 +1,18 @@
-use crossterm;
+use crossterm::{
+    cursor::{RestorePosition, SavePosition},
+    ExecutableCommand,
+};
 use eyre::Result;
 use spinners::{Spinner, Spinners};
+use std::io;
 
 pub fn start_spinner() -> Result<Spinner> {
-    crossterm::execute!(std::io::stdout(), crossterm::cursor::SavePosition)?;
+    io::stdout().execute(SavePosition)?;
     Ok(Spinner::new(Spinners::Arc, String::new()))
 }
 
-pub fn stop_spinner(spinner: &mut Spinner) -> Result<()> {
+pub fn stop_spinner(mut spinner: Spinner) -> Result<()> {
     spinner.stop();
-    crossterm::execute!(std::io::stdout(), crossterm::cursor::RestorePosition)?;
+    io::stdout().execute(RestorePosition)?;
     Ok(())
 }

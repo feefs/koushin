@@ -1,3 +1,5 @@
+use crate::spinner;
+
 use eyre::{eyre, Result};
 use inquire::{Password, PasswordDisplayMode};
 use nanoid::nanoid;
@@ -9,10 +11,38 @@ use tiny_http::{Response, Server};
 
 const PKG_NAME: &str = env!("CARGO_PKG_NAME");
 
+fn xdg_dirs() -> Result<xdg::BaseDirectories> {
+    Ok(xdg::BaseDirectories::with_prefix(PKG_NAME)?)
+}
+fn client_config_path() -> Result<PathBuf> {
+    Ok(xdg_dirs()?.place_config_file("config.toml")?)
+}
+fn auth_config_path() -> Result<PathBuf> {
+    Ok(xdg_dirs()?.place_config_file("auth.toml")?)
+}
+pub fn config_folder_path() -> Result<PathBuf> {
+    Ok(xdg_dirs()?.get_config_home())
+}
+
 #[derive(Deserialize, Serialize)]
 pub struct AuthConfig {
     pub access_token: String,
     pub refresh_token: String,
+}
+
+impl AuthConfig {
+    pub fn new() -> Result<Self> {
+        let mut spinner = spinner::start_spinner()?;
+        let auth_path = auth_config_path()?;
+        if !auth_path.exists() {
+            spinner::stop_spinner(spinner)?;
+            open_authorization()?;
+            spinner = spinner::start_spinner()?;
+        }
+        verify_refresh_auth()?;
+        spinner::stop_spinner(spinner)?;
+        deserialize_auth_config()
+    }
 }
 
 #[derive(Deserialize, Serialize)]
@@ -37,22 +67,6 @@ struct RefreshResponse {
     access_token: String,
 }
 
-fn xdg_dirs() -> Result<xdg::BaseDirectories> {
-    Ok(xdg::BaseDirectories::with_prefix(PKG_NAME)?)
-}
-
-fn client_config_path() -> Result<PathBuf> {
-    Ok(xdg_dirs()?.place_config_file("config.toml")?)
-}
-
-fn auth_config_path() -> Result<PathBuf> {
-    Ok(xdg_dirs()?.place_config_file("auth.toml")?)
-}
-
-pub fn config_folder_path() -> Result<PathBuf> {
-    Ok(xdg_dirs()?.get_config_home())
-}
-
 fn check_client_config(action: &ClientConfigAction) -> Result<()> {
     let path = client_config_path()?;
 
@@ -65,7 +79,7 @@ fn check_client_config(action: &ClientConfigAction) -> Result<()> {
     Ok(())
 }
 
-pub fn get_client_config() -> Result<ClientConfig> {
+fn get_client_config() -> Result<ClientConfig> {
     check_client_config(&ClientConfigAction::Get)?;
     let client_config = std::fs::read_to_string(client_config_path()?)?;
 
@@ -151,13 +165,4 @@ fn verify_refresh_auth() -> Result<()> {
     }
 
     Ok(())
-}
-
-pub fn get_auth_config() -> Result<AuthConfig> {
-    let path = auth_config_path()?;
-    if !path.exists() {
-        open_authorization()?;
-    };
-    verify_refresh_auth()?;
-    deserialize_auth_config()
 }

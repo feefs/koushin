@@ -7,6 +7,8 @@ mod config;
 mod mal;
 mod spinner;
 
+use crate::config::AuthConfig;
+
 use eyre::{eyre, Result};
 use owo_colors::OwoColorize;
 
@@ -15,20 +17,24 @@ fn koushin() -> Result<()> {
         return Err(eyre!("Not on Unix!"));
     }
 
+    let auth = AuthConfig::new()?;
+    let spinner = spinner::start_spinner()?;
+
     let c = <cli::Cli as clap::Parser>::parse();
     match &c.command {
         Some(command) => match command {
-            cli::CliCommands::List => mal::display_currently_watching_list()?,
+            cli::CliCommands::List => mal::display_currently_watching_list(&auth, spinner)?,
             cli::CliCommands::Set { set_command } => {
                 match set_command {
-                    cli::SetCommands::Count => mal::update_episode_count(mal::EpisodeAction::Set)?,
-                    cli::SetCommands::Day => mal::update_airing_day()?,
+                    cli::SetCommands::Count => mal::update_episode_count(&auth, spinner, mal::EpisodeAction::Set)?,
+                    cli::SetCommands::Day => mal::update_airing_day(&auth, spinner)?,
                 };
                 println!("{}", "更新されました!".green());
             }
-            cli::CliCommands::Mal => mal::open_my_anime_list()?,
-            cli::CliCommands::Page => mal::open_anime_page()?,
+            cli::CliCommands::Mal => mal::open_my_anime_list(&auth, spinner)?,
+            cli::CliCommands::Page => mal::open_anime_page(&auth, spinner)?,
             cli::CliCommands::Config { set_client } => {
+                spinner::stop_spinner(spinner)?;
                 if *set_client {
                     config::set_client_config()?;
                 } else {
@@ -40,7 +46,7 @@ fn koushin() -> Result<()> {
             }
         },
         None => {
-            mal::update_episode_count(mal::EpisodeAction::Increment)?;
+            mal::update_episode_count(&auth, spinner, mal::EpisodeAction::Increment)?;
             println!("{}", "更新されました!".green());
         }
     }

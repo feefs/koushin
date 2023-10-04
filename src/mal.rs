@@ -1,5 +1,5 @@
-use crate::config::{get_auth_config, AuthConfig};
-use crate::spinner::{start_spinner, stop_spinner};
+use crate::config::AuthConfig;
+use crate::spinner;
 
 use chrono::{Datelike, Local, Weekday};
 use eyre::Result;
@@ -91,7 +91,6 @@ struct UserInfoResponse {
     name: String,
 }
 
-
 fn get_entries(auth: &AuthConfig) -> Result<Vec<Entry>> {
     let mut entries: Vec<Entry> = Vec::new();
     let mut page: AnimeListResponse =
@@ -136,11 +135,9 @@ fn base_update_entry_request(auth: &AuthConfig, entry: &Entry) -> ureq::Request 
         .set("Authorization", &format!("Bearer {}", auth.access_token))
 }
 
-pub fn display_currently_watching_list() -> Result<()> {
-    let mut sp = start_spinner()?;
-    let auth = get_auth_config()?;
+pub fn display_currently_watching_list(auth: &AuthConfig, spinner: spinners::Spinner) -> Result<()> {
     let entries = get_entries(&auth)?;
-    stop_spinner(&mut sp)?;
+    spinner::stop_spinner(spinner)?;
 
     let mut seasonal_entry_vectors: Vec<Vec<Entry>> = vec![Vec::new(); 7];
     let mut off_season_entries: Vec<Entry> = Vec::new();
@@ -183,11 +180,9 @@ pub fn display_currently_watching_list() -> Result<()> {
     Ok(())
 }
 
-pub fn update_episode_count(action: EpisodeAction) -> Result<()> {
-    let mut sp = start_spinner()?;
-    let auth = get_auth_config()?;
+pub fn update_episode_count(auth: &AuthConfig, spinner: spinners::Spinner, action: EpisodeAction) -> Result<()> {
     let entries = get_entries(&auth)?;
-    stop_spinner(&mut sp)?;
+    spinner::stop_spinner(spinner)?;
 
     loop {
         let entry = select_entry(&entries)?;
@@ -252,11 +247,9 @@ pub fn update_episode_count(action: EpisodeAction) -> Result<()> {
     Ok(())
 }
 
-pub fn update_airing_day() -> Result<()> {
-    let mut sp = start_spinner()?;
-    let auth = get_auth_config()?;
+pub fn update_airing_day(auth: &AuthConfig, spinner: spinners::Spinner) -> Result<()> {
     let entries = get_entries(&auth)?;
-    stop_spinner(&mut sp)?;
+    spinner::stop_spinner(spinner)?;
 
     let entry = select_entry(&entries)?;
 
@@ -285,10 +278,8 @@ pub fn update_airing_day() -> Result<()> {
     Ok(())
 }
 
-pub fn open_my_anime_list() -> Result<()> {
-    let mut sp = start_spinner()?;
-    let auth = get_auth_config()?;
-    stop_spinner(&mut sp)?;
+pub fn open_my_anime_list(auth: &AuthConfig, spinner: spinners::Spinner) -> Result<()> {
+    spinner::stop_spinner(spinner)?;
 
     let response: UserInfoResponse =
         ureq::get("https://api.myanimelist.net/v2/users/@me").set("Authorization", &format!("Bearer {}", auth.access_token)).call()?.into_json()?;
@@ -298,11 +289,9 @@ pub fn open_my_anime_list() -> Result<()> {
     Ok(())
 }
 
-pub fn open_anime_page() -> Result<()> {
-    let mut sp = start_spinner()?;
-    let auth = get_auth_config()?;
+pub fn open_anime_page(auth: &AuthConfig, spinner: spinners::Spinner) -> Result<()> {
     let entries = get_entries(&auth)?;
-    stop_spinner(&mut sp)?;
+    spinner::stop_spinner(spinner)?;
 
     let entry = select_entry(&entries)?;
 
