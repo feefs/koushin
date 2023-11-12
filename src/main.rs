@@ -56,7 +56,7 @@ fn koushin() -> Result<()> {
 
 fn main() {
     std::process::exit(match koushin() {
-        Ok(_) => 0,
+        Ok(()) => 0,
         Err(e) => {
             println!("{} {e}", "Error:".red());
             1

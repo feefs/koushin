@@ -90,7 +90,7 @@ struct UserInfoResponse {
 fn get_entries(auth: &AuthConfig) -> Result<Vec<Entry>> {
     let mut entries: Vec<Entry> = Vec::new();
     let mut page: AnimeListResponse =
-        ureq::get("https://api.myanimelist.net/v2/users/@me/animelist?status=watching&fields=my_list_status{tags,comments},num_episodes")
+        ureq::get("https://api.myanimelist.net/v2/users/@me/animelist?status=watching&fields=my_list_status{tags,comments},num_episodes&nsfw=true")
             .set("Authorization", &format!("Bearer {}", auth.access_token))
             .call()?
             .into_json()?;
