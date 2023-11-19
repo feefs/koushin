@@ -12,7 +12,7 @@ edition = "2021"
 chrono = "0.4.31"
 clap = { version = "4.4.8", features = ["derive"] }
 crossterm = "0.27.0"
-eyre = "0.6.8"
+eyre = "0.6.9"
 inquire = "0.6.2"
 nanoid = "0.4.0"
 open = "5.0.0"
@@ -29,3 +29,11 @@ xdg = "2.5.2"
 [build-dependencies]
 clap = { version = "4.4.8", features = ["derive"] }
 clap_complete = "4.4.4"
+
+[lints.rust]
+unused_crate_dependencies = "deny"
+[lints.clippy]
+cargo = "warn"
+pedantic = "warn"
+module_name_repetitions = "allow"
+multiple_crate_versions = { level = "allow", priority = 1}
