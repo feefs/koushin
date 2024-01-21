@@ -35,5 +35,4 @@ unused_crate_dependencies = "deny"
 [lints.clippy]
 cargo = "warn"
 pedantic = "warn"
-module_name_repetitions = "allow"
-multiple_crate_versions = { level = "allow", priority = 1}
+multiple_crate_versions = { level = "allow", priority = 1 }

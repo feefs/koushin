@@ -20,18 +20,18 @@ fn client_config_path() -> Result<PathBuf> {
 fn auth_config_path() -> Result<PathBuf> {
     Ok(xdg_dirs()?.place_config_file("auth.toml")?)
 }
-pub fn config_folder_path() -> Result<PathBuf> {
+pub(crate) fn config_folder_path() -> Result<PathBuf> {
     Ok(xdg_dirs()?.get_config_home())
 }
 
 #[derive(Deserialize, Serialize)]
-pub struct AuthConfig {
-    pub access_token: String,
-    pub refresh_token: String,
+pub(crate) struct AuthConfig {
+    pub(crate) access_token: String,
+    pub(crate) refresh_token: String,
 }
 
 impl AuthConfig {
-    pub fn new(sp: &mut spinners::Spinner) -> Result<Self> {
+    pub(crate) fn new(sp: &mut spinners::Spinner) -> Result<Self> {
         let auth_path = auth_config_path()?;
         if !auth_path.exists() {
             spinner::stop_spinner(sp)?;
@@ -44,8 +44,8 @@ impl AuthConfig {
 }
 
 #[derive(Deserialize, Serialize)]
-pub struct ClientConfig {
-    pub client_id: String,
+pub(crate) struct ClientConfig {
+    pub(crate) client_id: String,
 }
 
 #[derive(PartialEq)]
@@ -84,7 +84,7 @@ fn get_client_config() -> Result<ClientConfig> {
     Ok(toml::from_str(&client_config)?)
 }
 
-pub fn set_client_config() -> Result<()> {
+pub(crate) fn set_client_config() -> Result<()> {
     check_client_config(&ClientConfigAction::Set)?;
 
     Ok(())
