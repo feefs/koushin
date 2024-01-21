@@ -5,10 +5,10 @@ mod spinner;
 
 use crate::config::AuthConfig;
 
+use ansi_term::Color;
 use clap::Parser;
 use cli::{Cli, CliCommands, SetCommands};
 use eyre::Result;
-use owo_colors::OwoColorize;
 
 fn koushin() -> Result<()> {
     let mut spinner = spinner::start_spinner()?;
@@ -23,7 +23,7 @@ fn koushin() -> Result<()> {
                     SetCommands::Count => mal::update_episode_count(&auth, &mut spinner, mal::EpisodeAction::Set)?,
                     SetCommands::Day => mal::update_airing_day(&auth, &mut spinner)?,
                 };
-                println!("{}", "更新されました!".green());
+                println!("{}", Color::Green.paint("更新されました!"));
             }
             CliCommands::Mal => mal::open_my_anime_list(&auth, &mut spinner)?,
             CliCommands::Page => mal::open_anime_page(&auth, &mut spinner)?,
@@ -38,7 +38,7 @@ fn koushin() -> Result<()> {
         },
         None => {
             mal::update_episode_count(&auth, &mut spinner, mal::EpisodeAction::Increment)?;
-            println!("{}", "更新されました!".green());
+            println!("{}", Color::Green.paint("更新されました!"));
         }
     }
 
@@ -49,7 +49,7 @@ fn main() {
     std::process::exit(match koushin() {
         Ok(()) => 0,
         Err(e) => {
-            println!("{} {e}", "Error:".red());
+            println!("{} {e}", Color::Red.paint("Error:"));
             1
         }
     })

@@ -1,10 +1,10 @@
 use crate::config::AuthConfig;
 use crate::spinner;
 
+use ansi_term::Color;
 use chrono::{Datelike, Local, Weekday};
 use eyre::Result;
 use inquire::{formatter::OptionFormatter, Confirm, CustomType, Select, Text};
-use owo_colors::OwoColorize;
 use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
 
@@ -41,7 +41,7 @@ struct Entry {
 
 impl std::fmt::Display for Entry {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        let mut text = format!("[{}] {}", self.watched_episodes.to_string().cyan(), self.title);
+        let mut text = format!("[{}] {}", Color::Cyan.paint(self.watched_episodes.to_string()), self.title);
         if text.len() > MAX_ENTRY_TITLE_LENGTH {
             text.truncate(MAX_ENTRY_TITLE_LENGTH - 3);
             text.push_str("...");
@@ -151,7 +151,8 @@ pub(crate) fn display_currently_watching_list(auth: &AuthConfig, sp: &mut spinne
     }
 
     if !off_season_entries.is_empty() {
-        println!("{}:", "Off-season".magenta().underline());
+        // Magenta
+        println!("{}:", Color::Fixed(13).underline().paint("Off-season"));
         for off_season_entry in off_season_entries {
             println!("  {off_season_entry}");
         }
@@ -163,9 +164,10 @@ pub(crate) fn display_currently_watching_list(auth: &AuthConfig, sp: &mut spinne
                 unreachable!();
             };
             if weekday == today {
-                println!("{}:", weekday.to_string().green().underline());
+                println!("{}:", Color::Green.underline().paint(weekday.to_string()));
             } else {
-                println!("{}:", weekday.to_string().magenta().underline());
+                // Magenta
+                println!("{}:", Color::Fixed(13).underline().paint(weekday.to_string()));
             }
             for seasonal_entry in vector {
                 println!("  {seasonal_entry}");

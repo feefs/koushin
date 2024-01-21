@@ -9,6 +9,7 @@ categories = ["command-line-utilities"]
 edition = "2021"
 
 [dependencies]
+ansi_term = "0.12.1"
 chrono = "0.4.31"
 clap = { version = "4.4.8", features = ["derive"] }
 crossterm = "0.27.0"
@@ -16,7 +17,6 @@ eyre = "0.6.9"
 inquire = "0.6.2"
 nanoid = "0.4.0"
 open = "5.0.0"
-owo-colors = "3.5.0"
 phf = { version = "0.11.2", features = ["macros"] }
 qstring = "0.7.2"
 serde = { version = "1.0.192", features = ["derive"] }

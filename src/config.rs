@@ -1,9 +1,9 @@
 use crate::spinner;
 
+use ansi_term::Color;
 use eyre::{eyre, Result};
 use inquire::{Password, PasswordDisplayMode};
 use nanoid::nanoid;
-use owo_colors::OwoColorize;
 use qstring::QString;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
@@ -159,7 +159,7 @@ fn verify_refresh_auth() -> Result<()> {
         })?;
         std::fs::write(path, contents)?;
 
-        println!("{}", "Access token refreshed!".cyan());
+        println!("{}", Color::Cyan.paint("Access token refreshed!"));
     }
 
     Ok(())
