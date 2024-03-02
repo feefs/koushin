@@ -1,6 +1,5 @@
-use crate::config::AuthConfig;
+use crate::auth::AuthConfig;
 use crate::spinner;
-
 use ansi_term::Color;
 use chrono::{Datelike, Local, Weekday};
 use eyre::Result;

@@ -1,10 +1,11 @@
+mod auth;
 mod cli;
 mod config;
 mod mal;
 mod spinner;
+mod xdg;
 
-use crate::config::AuthConfig;
-
+use crate::auth::AuthConfig;
 use ansi_term::Color;
 use clap::Parser;
 use cli::{Cli, CliCommands, SetCommands};
@@ -32,7 +33,7 @@ fn koushin() -> Result<()> {
                 if *set_client {
                     config::set_client_config()?;
                 } else {
-                    println!("{}", config::config_folder_path()?.display());
+                    println!("{}", xdg::config_folder_path()?.display());
                 }
             }
         },
