@@ -2,13 +2,13 @@ use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
 #[clap(about, version)]
-pub(crate) struct Cli {
+pub(super) struct Cli {
     #[clap(subcommand)]
-    pub(crate) command: Option<CliCommands>,
+    pub(super) command: Option<CliCommands>,
 }
 
 #[derive(Subcommand)]
-pub(crate) enum CliCommands {
+pub(super) enum CliCommands {
     /// Display your MyAnimeList in an organized format [alias: l]
     #[command(alias = "l")]
     List,
@@ -33,7 +33,7 @@ pub(crate) enum CliCommands {
 }
 
 #[derive(Subcommand)]
-pub(crate) enum SetCommands {
+pub(super) enum SetCommands {
     /// Set episode count
     Count,
     /// Set airing day

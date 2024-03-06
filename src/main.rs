@@ -6,9 +6,9 @@ mod spinner;
 mod xdg;
 
 use crate::auth::AuthConfig;
+use crate::cli::{Cli, CliCommands, SetCommands};
 use ansi_term::Color;
 use clap::Parser;
-use cli::{Cli, CliCommands, SetCommands};
 use eyre::Result;
 
 fn koushin() -> Result<()> {

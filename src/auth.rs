@@ -9,13 +9,13 @@ use serde::{Deserialize, Serialize};
 use tiny_http::{Response, Server};
 
 #[derive(Deserialize, Serialize)]
-pub(crate) struct AuthConfig {
-    pub(crate) access_token: String,
-    pub(crate) refresh_token: String,
+pub(super) struct AuthConfig {
+    pub(super) access_token: String,
+    pub(super) refresh_token: String,
 }
 
 impl AuthConfig {
-    pub(crate) fn new(sp: &mut spinners::Spinner) -> Result<Self> {
+    pub(super) fn new(sp: &mut spinners::Spinner) -> Result<Self> {
         let auth_path = xdg::auth_path()?;
         if !auth_path.exists() {
             spinner::stop_spinner(sp)?;

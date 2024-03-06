@@ -50,7 +50,7 @@ impl std::fmt::Display for Entry {
 }
 
 #[derive(Copy, Clone)]
-pub(crate) enum EpisodeAction {
+pub(super) enum EpisodeAction {
     Set,
     Increment,
 }
@@ -130,7 +130,7 @@ fn base_update_entry_request(auth: &AuthConfig, entry: &Entry) -> ureq::Request 
         .set("Authorization", &format!("Bearer {}", auth.access_token))
 }
 
-pub(crate) fn display_currently_watching_list(auth: &AuthConfig, sp: &mut spinners::Spinner) -> Result<()> {
+pub(super) fn display_currently_watching_list(auth: &AuthConfig, sp: &mut spinners::Spinner) -> Result<()> {
     let entries = get_entries(auth)?;
     spinner::stop_spinner(sp)?;
 
@@ -177,7 +177,7 @@ pub(crate) fn display_currently_watching_list(auth: &AuthConfig, sp: &mut spinne
     Ok(())
 }
 
-pub(crate) fn update_episode_count(auth: &AuthConfig, sp: &mut spinners::Spinner, action: EpisodeAction) -> Result<()> {
+pub(super) fn update_episode_count(auth: &AuthConfig, sp: &mut spinners::Spinner, action: EpisodeAction) -> Result<()> {
     let entries = get_entries(auth)?;
     spinner::stop_spinner(sp)?;
 
@@ -244,7 +244,7 @@ pub(crate) fn update_episode_count(auth: &AuthConfig, sp: &mut spinners::Spinner
     Ok(())
 }
 
-pub(crate) fn update_airing_day(auth: &AuthConfig, sp: &mut spinners::Spinner) -> Result<()> {
+pub(super) fn update_airing_day(auth: &AuthConfig, sp: &mut spinners::Spinner) -> Result<()> {
     let entries = get_entries(auth)?;
     spinner::stop_spinner(sp)?;
 
@@ -275,7 +275,7 @@ pub(crate) fn update_airing_day(auth: &AuthConfig, sp: &mut spinners::Spinner) -
     Ok(())
 }
 
-pub(crate) fn open_my_anime_list(auth: &AuthConfig, sp: &mut spinners::Spinner) -> Result<()> {
+pub(super) fn open_my_anime_list(auth: &AuthConfig, sp: &mut spinners::Spinner) -> Result<()> {
     spinner::stop_spinner(sp)?;
 
     let response: UserInfoResponse =
@@ -286,7 +286,7 @@ pub(crate) fn open_my_anime_list(auth: &AuthConfig, sp: &mut spinners::Spinner) 
     Ok(())
 }
 
-pub(crate) fn open_anime_page(auth: &AuthConfig, sp: &mut spinners::Spinner) -> Result<()> {
+pub(super) fn open_anime_page(auth: &AuthConfig, sp: &mut spinners::Spinner) -> Result<()> {
     let entries = get_entries(auth)?;
     spinner::stop_spinner(sp)?;
 

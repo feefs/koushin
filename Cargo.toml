@@ -1,6 +1,6 @@
 [package]
 name = "koushin"
-version = "0.2.5"
+version = "0.2.6"
 repository = "https://github.com/feefs/koushin"
 description = "A CLI tool for quickly updating (更新) your currently watching MyAnimeList"
 license = "MIT"
