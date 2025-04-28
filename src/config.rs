@@ -21,7 +21,7 @@ fn check_client_config(action: &ClientConfigAction) -> Result<()> {
         let client_id = Password::new("Input MAL client ID:").with_display_mode(PasswordDisplayMode::Masked).prompt()?;
         let contents = toml::to_string_pretty(&ClientConfig { client_id })?;
         std::fs::write(&path, contents)?;
-    };
+    }
 
     Ok(())
 }

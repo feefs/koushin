@@ -3,7 +3,7 @@ use crate::spinner;
 use ansi_term::Color;
 use chrono::{Datelike, Local, Weekday};
 use eyre::Result;
-use inquire::{formatter::OptionFormatter, Confirm, CustomType, Select, Text};
+use inquire::{Confirm, CustomType, Select, Text, formatter::OptionFormatter};
 use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
 

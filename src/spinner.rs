@@ -1,6 +1,6 @@
 use crossterm::{
-    cursor::{RestorePosition, SavePosition},
     ExecutableCommand,
+    cursor::{RestorePosition, SavePosition},
 };
 use eyre::Result;
 use spinners::{Spinner, Spinners};

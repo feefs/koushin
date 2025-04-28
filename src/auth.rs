@@ -2,7 +2,7 @@ use crate::config;
 use crate::spinner;
 use crate::xdg;
 use ansi_term::Color;
-use eyre::{eyre, Result};
+use eyre::{Result, eyre};
 use nanoid::nanoid;
 use qstring::QString;
 use serde::{Deserialize, Serialize};

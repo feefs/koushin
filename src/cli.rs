@@ -7,6 +7,7 @@ pub(super) struct Cli {
     pub(super) command: Option<CliCommands>,
 }
 
+#[allow(clippy::doc_markdown)]
 #[derive(Subcommand)]
 pub(super) enum CliCommands {
     /// Display your MyAnimeList in an organized format [alias: l]

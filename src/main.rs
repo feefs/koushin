@@ -16,14 +16,14 @@ fn koushin() -> Result<()> {
     let auth = AuthConfig::new(&mut spinner)?;
 
     let c = Cli::parse();
-    match &c.command {
-        Some(command) => match command {
+    if let Some(command) = &c.command {
+        match command {
             CliCommands::List => mal::display_currently_watching_list(&auth, &mut spinner)?,
             CliCommands::Set { set_command } => {
                 match set_command {
                     SetCommands::Count => mal::update_episode_count(&auth, &mut spinner, mal::EpisodeAction::Set)?,
                     SetCommands::Day => mal::update_airing_day(&auth, &mut spinner)?,
-                };
+                }
                 println!("{}", Color::Green.paint("更新されました!"));
             }
             CliCommands::Mal => mal::open_my_anime_list(&auth, &mut spinner)?,
@@ -36,11 +36,10 @@ fn koushin() -> Result<()> {
                     println!("{}", xdg::config_folder_path()?.display());
                 }
             }
-        },
-        None => {
-            mal::update_episode_count(&auth, &mut spinner, mal::EpisodeAction::Increment)?;
-            println!("{}", Color::Green.paint("更新されました!"));
         }
+    } else {
+        mal::update_episode_count(&auth, &mut spinner, mal::EpisodeAction::Increment)?;
+        println!("{}", Color::Green.paint("更新されました!"));
     }
 
     Ok(())
