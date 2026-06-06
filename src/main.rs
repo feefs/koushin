@@ -12,24 +12,22 @@ use clap::Parser;
 use eyre::Result;
 
 fn koushin() -> Result<()> {
-    let mut spinner = spinner::start_spinner()?;
-    let auth = AuthConfig::new(&mut spinner)?;
+    let auth = AuthConfig::new()?;
 
     let c = Cli::parse();
     if let Some(command) = &c.command {
         match command {
-            CliCommands::List => mal::display_currently_watching_list(&auth, &mut spinner)?,
+            CliCommands::List => mal::display_currently_watching_list(&auth)?,
             CliCommands::Set { set_command } => {
                 match set_command {
-                    SetCommands::Count => mal::update_episode_count(&auth, &mut spinner, mal::EpisodeAction::Set)?,
-                    SetCommands::Day => mal::update_airing_day(&auth, &mut spinner)?,
+                    SetCommands::Count => mal::update_episode_count(&auth, mal::EpisodeAction::Set)?,
+                    SetCommands::Day => mal::update_airing_day(&auth)?,
                 }
                 println!("{}", Color::Green.paint("更新されました!"));
             }
-            CliCommands::Mal => mal::open_my_anime_list(&auth, &mut spinner)?,
-            CliCommands::Page => mal::open_anime_page(&auth, &mut spinner)?,
+            CliCommands::Mal => mal::open_my_anime_list(&auth)?,
+            CliCommands::Page => mal::open_anime_page(&auth)?,
             CliCommands::Config { set_client } => {
-                spinner::stop_spinner(&mut spinner)?;
                 if *set_client {
                     config::set_client_config()?;
                 } else {
@@ -38,7 +36,7 @@ fn koushin() -> Result<()> {
             }
         }
     } else {
-        mal::update_episode_count(&auth, &mut spinner, mal::EpisodeAction::Increment)?;
+        mal::update_episode_count(&auth, mal::EpisodeAction::Increment)?;
         println!("{}", Color::Green.paint("更新されました!"));
     }
 

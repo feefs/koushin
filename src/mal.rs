@@ -88,12 +88,12 @@ struct UserInfoResponse {
 
 fn get_entries(auth: &AuthConfig) -> Result<Vec<Entry>> {
     let mut entries: Vec<Entry> = Vec::new();
-    let mut page: AnimeListResponse =
-        ureq::get("https://api.myanimelist.net/v2/users/@me/animelist?status=watching&fields=my_list_status{tags,comments},num_episodes&nsfw=true")
-            .header("Authorization", format!("Bearer {}", auth.access_token))
-            .call()?
-            .into_body()
-            .read_json()?;
+    let mut page: AnimeListResponse = spinner::agent()
+        .get("https://api.myanimelist.net/v2/users/@me/animelist?status=watching&fields=my_list_status{tags,comments},num_episodes&nsfw=true")
+        .header("Authorization", format!("Bearer {}", auth.access_token))
+        .call()?
+        .into_body()
+        .read_json()?;
 
     loop {
         for data in &page.data {
@@ -108,7 +108,7 @@ fn get_entries(auth: &AuthConfig) -> Result<Vec<Entry>> {
 
         match page.paging.next {
             Some(url) => {
-                page = ureq::get(&url).header("Authorization", format!("Bearer {}", auth.access_token)).call()?.into_body().read_json()?;
+                page = spinner::agent().get(&url).header("Authorization", format!("Bearer {}", auth.access_token)).call()?.into_body().read_json()?;
             }
             None => break,
         }
@@ -130,9 +130,8 @@ fn base_update_entry_url(entry: &Entry) -> String {
     format!("https://api.myanimelist.net/v2/anime/{}/my_list_status", entry.id)
 }
 
-pub(super) fn display_currently_watching_list(auth: &AuthConfig, sp: &mut spinners::Spinner) -> Result<()> {
+pub(super) fn display_currently_watching_list(auth: &AuthConfig) -> Result<()> {
     let entries = get_entries(auth)?;
-    spinner::stop_spinner(sp)?;
 
     let mut seasonal_entry_vectors: Vec<Vec<Entry>> = vec![Vec::new(); 7];
     let mut off_season_entries: Vec<Entry> = Vec::new();
@@ -177,9 +176,8 @@ pub(super) fn display_currently_watching_list(auth: &AuthConfig, sp: &mut spinne
     Ok(())
 }
 
-pub(super) fn update_episode_count(auth: &AuthConfig, sp: &mut spinners::Spinner, action: EpisodeAction) -> Result<()> {
+pub(super) fn update_episode_count(auth: &AuthConfig, action: EpisodeAction) -> Result<()> {
     let entries = get_entries(auth)?;
-    spinner::stop_spinner(sp)?;
 
     loop {
         let entry = select_entry(&entries)?;
@@ -201,7 +199,7 @@ pub(super) fn update_episode_count(auth: &AuthConfig, sp: &mut spinners::Spinner
 
         if Confirm::new(&confirm_prompt_text).with_default(true).with_help_message(&help_message_text).prompt()? {
             let url = base_update_entry_url(&entry);
-            let request = ureq::patch(url).header("Authorization", format!("Bearer {}", auth.access_token));
+            let request = spinner::agent().patch(url).header("Authorization", format!("Bearer {}", auth.access_token));
 
             let new_episode_count: usize = match action {
                 EpisodeAction::Set => CustomType::new("Input episode count:").with_error_message("Invalid episode count!").prompt()?,
@@ -245,14 +243,13 @@ pub(super) fn update_episode_count(auth: &AuthConfig, sp: &mut spinners::Spinner
     Ok(())
 }
 
-pub(super) fn update_airing_day(auth: &AuthConfig, sp: &mut spinners::Spinner) -> Result<()> {
+pub(super) fn update_airing_day(auth: &AuthConfig) -> Result<()> {
     let entries = get_entries(auth)?;
-    spinner::stop_spinner(sp)?;
 
     let entry = select_entry(&entries)?;
 
     let url = base_update_entry_url(&entry);
-    let request = ureq::patch(url).header("Authorization", format!("Bearer {}", auth.access_token));
+    let request = spinner::agent().patch(url).header("Authorization", format!("Bearer {}", auth.access_token));
 
     let mut days = VecDeque::from([
         Weekday::Mon,
@@ -277,10 +274,9 @@ pub(super) fn update_airing_day(auth: &AuthConfig, sp: &mut spinners::Spinner) -
     Ok(())
 }
 
-pub(super) fn open_my_anime_list(auth: &AuthConfig, sp: &mut spinners::Spinner) -> Result<()> {
-    spinner::stop_spinner(sp)?;
-
-    let response: UserInfoResponse = ureq::get("https://api.myanimelist.net/v2/users/@me")
+pub(super) fn open_my_anime_list(auth: &AuthConfig) -> Result<()> {
+    let response: UserInfoResponse = spinner::agent()
+        .get("https://api.myanimelist.net/v2/users/@me")
         .header("Authorization", format!("Bearer {}", auth.access_token))
         .call()?
         .into_body()
@@ -291,9 +287,8 @@ pub(super) fn open_my_anime_list(auth: &AuthConfig, sp: &mut spinners::Spinner) 
     Ok(())
 }
 
-pub(super) fn open_anime_page(auth: &AuthConfig, sp: &mut spinners::Spinner) -> Result<()> {
+pub(super) fn open_anime_page(auth: &AuthConfig) -> Result<()> {
     let entries = get_entries(auth)?;
-    spinner::stop_spinner(sp)?;
 
     let entry = select_entry(&entries)?;
 

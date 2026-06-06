@@ -15,12 +15,10 @@ pub(super) struct AuthConfig {
 }
 
 impl AuthConfig {
-    pub(super) fn new(sp: &mut spinners::Spinner) -> Result<Self> {
+    pub(super) fn new() -> Result<Self> {
         let auth_path = xdg::auth_path()?;
         if !auth_path.exists() {
-            spinner::stop_spinner(sp)?;
             open_authorization()?;
-            *sp = spinner::start_spinner()?;
         }
         verify_refresh_auth()?;
         deserialize_auth_config()
@@ -66,7 +64,8 @@ fn open_authorization() -> Result<()> {
     };
     code_request.respond(Response::from_string("Code received!"))?;
 
-    let token_response_json: TokenResponse = ureq::post("https://myanimelist.net/v1/oauth2/token")
+    let token_response_json: TokenResponse = spinner::agent()
+        .post("https://myanimelist.net/v1/oauth2/token")
         .send_form([
             ("client_id", config.client_id.as_str()),
             ("code", code),
@@ -90,12 +89,14 @@ fn verify_refresh_auth() -> Result<()> {
     let auth_config = deserialize_auth_config()?;
     let client_config = config::get_client_config()?;
 
-    let res = ureq::get("https://api.myanimelist.net/v2/users/@me")
+    let res = spinner::agent()
+        .get("https://api.myanimelist.net/v2/users/@me")
         .header("Authorization", format!("Bearer {}", auth_config.access_token))
         .call()?;
 
     if !res.status().is_success() {
-        let refresh_response_json: RefreshResponse = ureq::post("https://myanimelist.net/v1/oauth2/token")
+        let refresh_response_json: RefreshResponse = spinner::agent()
+            .post("https://myanimelist.net/v1/oauth2/token")
             .send_form([
                 ("client_id", client_config.client_id.as_str()),
                 ("refresh_token", auth_config.refresh_token.as_str()),
