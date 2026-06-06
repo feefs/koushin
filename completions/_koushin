@@ -38,7 +38,7 @@ _arguments "${_arguments_options[@]}" : \
 _arguments "${_arguments_options[@]}" : \
 '-h[Print help]' \
 '--help[Print help]' \
-":: :_koushin__set_commands" \
+":: :_koushin__subcmd__set_commands" \
 "*::: :->set" \
 && ret=0
 
@@ -62,7 +62,7 @@ _arguments "${_arguments_options[@]}" : \
 ;;
 (help)
 _arguments "${_arguments_options[@]}" : \
-":: :_koushin__set__help_commands" \
+":: :_koushin__subcmd__set__subcmd__help_commands" \
 "*::: :->help" \
 && ret=0
 
@@ -114,7 +114,7 @@ _arguments "${_arguments_options[@]}" : \
 ;;
 (help)
 _arguments "${_arguments_options[@]}" : \
-":: :_koushin__help_commands" \
+":: :_koushin__subcmd__help_commands" \
 "*::: :->help" \
 && ret=0
 
@@ -130,7 +130,7 @@ _arguments "${_arguments_options[@]}" : \
 ;;
 (set)
 _arguments "${_arguments_options[@]}" : \
-":: :_koushin__help__set_commands" \
+":: :_koushin__subcmd__help__subcmd__set_commands" \
 "*::: :->set" \
 && ret=0
 
@@ -189,13 +189,13 @@ _koushin_commands() {
     )
     _describe -t commands 'koushin commands' commands "$@"
 }
-(( $+functions[_koushin__config_commands] )) ||
-_koushin__config_commands() {
+(( $+functions[_koushin__subcmd__config_commands] )) ||
+_koushin__subcmd__config_commands() {
     local commands; commands=()
     _describe -t commands 'koushin config commands' commands "$@"
 }
-(( $+functions[_koushin__help_commands] )) ||
-_koushin__help_commands() {
+(( $+functions[_koushin__subcmd__help_commands] )) ||
+_koushin__subcmd__help_commands() {
     local commands; commands=(
 'list:Display your MyAnimeList in an organized format \[alias\: l\]' \
 'set:Set an attribute for an anime                   \[alias\: s\]' \
@@ -206,66 +206,66 @@ _koushin__help_commands() {
     )
     _describe -t commands 'koushin help commands' commands "$@"
 }
-(( $+functions[_koushin__help__config_commands] )) ||
-_koushin__help__config_commands() {
+(( $+functions[_koushin__subcmd__help__subcmd__config_commands] )) ||
+_koushin__subcmd__help__subcmd__config_commands() {
     local commands; commands=()
     _describe -t commands 'koushin help config commands' commands "$@"
 }
-(( $+functions[_koushin__help__help_commands] )) ||
-_koushin__help__help_commands() {
+(( $+functions[_koushin__subcmd__help__subcmd__help_commands] )) ||
+_koushin__subcmd__help__subcmd__help_commands() {
     local commands; commands=()
     _describe -t commands 'koushin help help commands' commands "$@"
 }
-(( $+functions[_koushin__help__list_commands] )) ||
-_koushin__help__list_commands() {
+(( $+functions[_koushin__subcmd__help__subcmd__list_commands] )) ||
+_koushin__subcmd__help__subcmd__list_commands() {
     local commands; commands=()
     _describe -t commands 'koushin help list commands' commands "$@"
 }
-(( $+functions[_koushin__help__mal_commands] )) ||
-_koushin__help__mal_commands() {
+(( $+functions[_koushin__subcmd__help__subcmd__mal_commands] )) ||
+_koushin__subcmd__help__subcmd__mal_commands() {
     local commands; commands=()
     _describe -t commands 'koushin help mal commands' commands "$@"
 }
-(( $+functions[_koushin__help__page_commands] )) ||
-_koushin__help__page_commands() {
+(( $+functions[_koushin__subcmd__help__subcmd__page_commands] )) ||
+_koushin__subcmd__help__subcmd__page_commands() {
     local commands; commands=()
     _describe -t commands 'koushin help page commands' commands "$@"
 }
-(( $+functions[_koushin__help__set_commands] )) ||
-_koushin__help__set_commands() {
+(( $+functions[_koushin__subcmd__help__subcmd__set_commands] )) ||
+_koushin__subcmd__help__subcmd__set_commands() {
     local commands; commands=(
 'count:Set episode count' \
 'day:Set airing day' \
     )
     _describe -t commands 'koushin help set commands' commands "$@"
 }
-(( $+functions[_koushin__help__set__count_commands] )) ||
-_koushin__help__set__count_commands() {
+(( $+functions[_koushin__subcmd__help__subcmd__set__subcmd__count_commands] )) ||
+_koushin__subcmd__help__subcmd__set__subcmd__count_commands() {
     local commands; commands=()
     _describe -t commands 'koushin help set count commands' commands "$@"
 }
-(( $+functions[_koushin__help__set__day_commands] )) ||
-_koushin__help__set__day_commands() {
+(( $+functions[_koushin__subcmd__help__subcmd__set__subcmd__day_commands] )) ||
+_koushin__subcmd__help__subcmd__set__subcmd__day_commands() {
     local commands; commands=()
     _describe -t commands 'koushin help set day commands' commands "$@"
 }
-(( $+functions[_koushin__list_commands] )) ||
-_koushin__list_commands() {
+(( $+functions[_koushin__subcmd__list_commands] )) ||
+_koushin__subcmd__list_commands() {
     local commands; commands=()
     _describe -t commands 'koushin list commands' commands "$@"
 }
-(( $+functions[_koushin__mal_commands] )) ||
-_koushin__mal_commands() {
+(( $+functions[_koushin__subcmd__mal_commands] )) ||
+_koushin__subcmd__mal_commands() {
     local commands; commands=()
     _describe -t commands 'koushin mal commands' commands "$@"
 }
-(( $+functions[_koushin__page_commands] )) ||
-_koushin__page_commands() {
+(( $+functions[_koushin__subcmd__page_commands] )) ||
+_koushin__subcmd__page_commands() {
     local commands; commands=()
     _describe -t commands 'koushin page commands' commands "$@"
 }
-(( $+functions[_koushin__set_commands] )) ||
-_koushin__set_commands() {
+(( $+functions[_koushin__subcmd__set_commands] )) ||
+_koushin__subcmd__set_commands() {
     local commands; commands=(
 'count:Set episode count' \
 'day:Set airing day' \
@@ -273,18 +273,18 @@ _koushin__set_commands() {
     )
     _describe -t commands 'koushin set commands' commands "$@"
 }
-(( $+functions[_koushin__set__count_commands] )) ||
-_koushin__set__count_commands() {
+(( $+functions[_koushin__subcmd__set__subcmd__count_commands] )) ||
+_koushin__subcmd__set__subcmd__count_commands() {
     local commands; commands=()
     _describe -t commands 'koushin set count commands' commands "$@"
 }
-(( $+functions[_koushin__set__day_commands] )) ||
-_koushin__set__day_commands() {
+(( $+functions[_koushin__subcmd__set__subcmd__day_commands] )) ||
+_koushin__subcmd__set__subcmd__day_commands() {
     local commands; commands=()
     _describe -t commands 'koushin set day commands' commands "$@"
 }
-(( $+functions[_koushin__set__help_commands] )) ||
-_koushin__set__help_commands() {
+(( $+functions[_koushin__subcmd__set__subcmd__help_commands] )) ||
+_koushin__subcmd__set__subcmd__help_commands() {
     local commands; commands=(
 'count:Set episode count' \
 'day:Set airing day' \
@@ -292,18 +292,18 @@ _koushin__set__help_commands() {
     )
     _describe -t commands 'koushin set help commands' commands "$@"
 }
-(( $+functions[_koushin__set__help__count_commands] )) ||
-_koushin__set__help__count_commands() {
+(( $+functions[_koushin__subcmd__set__subcmd__help__subcmd__count_commands] )) ||
+_koushin__subcmd__set__subcmd__help__subcmd__count_commands() {
     local commands; commands=()
     _describe -t commands 'koushin set help count commands' commands "$@"
 }
-(( $+functions[_koushin__set__help__day_commands] )) ||
-_koushin__set__help__day_commands() {
+(( $+functions[_koushin__subcmd__set__subcmd__help__subcmd__day_commands] )) ||
+_koushin__subcmd__set__subcmd__help__subcmd__day_commands() {
     local commands; commands=()
     _describe -t commands 'koushin set help day commands' commands "$@"
 }
-(( $+functions[_koushin__set__help__help_commands] )) ||
-_koushin__set__help__help_commands() {
+(( $+functions[_koushin__subcmd__set__subcmd__help__subcmd__help_commands] )) ||
+_koushin__subcmd__set__subcmd__help__subcmd__help_commands() {
     local commands; commands=()
     _describe -t commands 'koushin set help help commands' commands "$@"
 }

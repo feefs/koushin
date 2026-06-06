@@ -90,9 +90,10 @@ fn get_entries(auth: &AuthConfig) -> Result<Vec<Entry>> {
     let mut entries: Vec<Entry> = Vec::new();
     let mut page: AnimeListResponse =
         ureq::get("https://api.myanimelist.net/v2/users/@me/animelist?status=watching&fields=my_list_status{tags,comments},num_episodes&nsfw=true")
-            .set("Authorization", &format!("Bearer {}", auth.access_token))
+            .header("Authorization", format!("Bearer {}", auth.access_token))
             .call()?
-            .into_json()?;
+            .into_body()
+            .read_json()?;
 
     loop {
         for data in &page.data {
@@ -107,7 +108,7 @@ fn get_entries(auth: &AuthConfig) -> Result<Vec<Entry>> {
 
         match page.paging.next {
             Some(url) => {
-                page = ureq::get(&url).set("Authorization", &format!("Bearer {}", auth.access_token)).call()?.into_json()?;
+                page = ureq::get(&url).header("Authorization", format!("Bearer {}", auth.access_token)).call()?.into_body().read_json()?;
             }
             None => break,
         }
@@ -119,15 +120,14 @@ fn get_entries(auth: &AuthConfig) -> Result<Vec<Entry>> {
 }
 
 fn select_entry(entries: &[Entry]) -> Result<Entry> {
-    let formatter: OptionFormatter<Entry> = &|e| e.value.title.to_string();
+    let formatter: OptionFormatter<Entry> = &|e| e.value.title.clone();
     let entries_prompt = Select::new("Select an anime you are currently watching:", entries.to_vec()).with_formatter(formatter).with_page_size(20);
 
     Ok(entries_prompt.prompt()?)
 }
 
-fn base_update_entry_request(auth: &AuthConfig, entry: &Entry) -> ureq::Request {
-    ureq::patch(&format!("https://api.myanimelist.net/v2/anime/{}/my_list_status", entry.id))
-        .set("Authorization", &format!("Bearer {}", auth.access_token))
+fn base_update_entry_url(entry: &Entry) -> String {
+    format!("https://api.myanimelist.net/v2/anime/{}/my_list_status", entry.id)
 }
 
 pub(super) fn display_currently_watching_list(auth: &AuthConfig, sp: &mut spinners::Spinner) -> Result<()> {
@@ -200,7 +200,8 @@ pub(super) fn update_episode_count(auth: &AuthConfig, sp: &mut spinners::Spinner
         );
 
         if Confirm::new(&confirm_prompt_text).with_default(true).with_help_message(&help_message_text).prompt()? {
-            let request = base_update_entry_request(auth, &entry);
+            let url = base_update_entry_url(&entry);
+            let request = ureq::patch(url).header("Authorization", format!("Bearer {}", auth.access_token));
 
             let new_episode_count: usize = match action {
                 EpisodeAction::Set => CustomType::new("Input episode count:").with_error_message("Invalid episode count!").prompt()?,
@@ -227,14 +228,14 @@ pub(super) fn update_episode_count(auth: &AuthConfig, sp: &mut spinners::Spinner
                     .prompt()?;
                 let review = Text::new("Input review:").prompt()?;
 
-                request.send_form(&[
+                request.send_form([
                     ("num_watched_episodes", new_episode_count.to_string().as_str()),
                     ("status", "completed"),
                     ("score", score.to_string().as_str()),
-                    ("tags", &review),
+                    ("tags", review.as_str()),
                 ])?;
             } else {
-                request.send_form(&[("num_watched_episodes", new_episode_count.to_string().as_str())])?;
+                request.send_form([("num_watched_episodes", new_episode_count.to_string().as_str())])?;
             }
 
             break;
@@ -250,7 +251,8 @@ pub(super) fn update_airing_day(auth: &AuthConfig, sp: &mut spinners::Spinner) -
 
     let entry = select_entry(&entries)?;
 
-    let request = base_update_entry_request(auth, &entry);
+    let url = base_update_entry_url(&entry);
+    let request = ureq::patch(url).header("Authorization", format!("Bearer {}", auth.access_token));
 
     let mut days = VecDeque::from([
         Weekday::Mon,
@@ -270,7 +272,7 @@ pub(super) fn update_airing_day(auth: &AuthConfig, sp: &mut spinners::Spinner) -
     let weekday = Select::new(&prompt_text, days.into()).prompt()?;
     let airing_day = AIRING_DAY_MAPPINGS.get(&weekday.num_days_from_monday()).copied().unwrap_or_default();
 
-    request.send_form(&[("tags", airing_day)])?;
+    request.send_form([("tags", airing_day)])?;
 
     Ok(())
 }
@@ -278,8 +280,11 @@ pub(super) fn update_airing_day(auth: &AuthConfig, sp: &mut spinners::Spinner) -
 pub(super) fn open_my_anime_list(auth: &AuthConfig, sp: &mut spinners::Spinner) -> Result<()> {
     spinner::stop_spinner(sp)?;
 
-    let response: UserInfoResponse =
-        ureq::get("https://api.myanimelist.net/v2/users/@me").set("Authorization", &format!("Bearer {}", auth.access_token)).call()?.into_json()?;
+    let response: UserInfoResponse = ureq::get("https://api.myanimelist.net/v2/users/@me")
+        .header("Authorization", format!("Bearer {}", auth.access_token))
+        .call()?
+        .into_body()
+        .read_json()?;
 
     open::that(format!("https://myanimelist.net/animelist/{}?status=1", response.name))?;
 

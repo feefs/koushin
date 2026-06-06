@@ -67,13 +67,14 @@ fn open_authorization() -> Result<()> {
     code_request.respond(Response::from_string("Code received!"))?;
 
     let token_response_json: TokenResponse = ureq::post("https://myanimelist.net/v1/oauth2/token")
-        .send_form(&[
-            ("client_id", &config.client_id),
+        .send_form([
+            ("client_id", config.client_id.as_str()),
             ("code", code),
-            ("code_verifier", &verifier),
+            ("code_verifier", verifier.as_str()),
             ("grant_type", "authorization_code"),
         ])?
-        .into_json()?;
+        .into_body()
+        .read_json()?;
 
     let path = xdg::auth_path()?;
     let contents = toml::to_string_pretty(&AuthConfig {
@@ -89,16 +90,19 @@ fn verify_refresh_auth() -> Result<()> {
     let auth_config = deserialize_auth_config()?;
     let client_config = config::get_client_config()?;
 
-    if let Err(ureq::Error::Status(_, _)) =
-        ureq::get("https://api.myanimelist.net/v2/users/@me").set("Authorization", &format!("Bearer {}", auth_config.access_token)).call()
-    {
+    let res = ureq::get("https://api.myanimelist.net/v2/users/@me")
+        .header("Authorization", format!("Bearer {}", auth_config.access_token))
+        .call()?;
+
+    if !res.status().is_success() {
         let refresh_response_json: RefreshResponse = ureq::post("https://myanimelist.net/v1/oauth2/token")
-            .send_form(&[
-                ("client_id", &client_config.client_id),
-                ("refresh_token", &auth_config.refresh_token),
+            .send_form([
+                ("client_id", client_config.client_id.as_str()),
+                ("refresh_token", auth_config.refresh_token.as_str()),
                 ("grant_type", "refresh_token"),
             ])?
-            .into_json()?;
+            .into_body()
+            .read_json()?;
 
         let path = xdg::auth_path()?;
         let contents = toml::to_string_pretty(&AuthConfig {
