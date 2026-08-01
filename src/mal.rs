@@ -265,7 +265,7 @@ pub(super) fn update_airing_day(auth: &AuthConfig) -> Result<()> {
         days.push_back(day);
     }
 
-    let prompt_text = format!("Select an airing day to set for \"{}\"", &entry.title);
+    let prompt_text = format!("Select an airing day to set for \"{}\"", entry.title);
     let weekday = Select::new(&prompt_text, days.into()).prompt()?;
     let airing_day = AIRING_DAY_MAPPINGS.get(&weekday.num_days_from_monday()).copied().unwrap_or_default();
 

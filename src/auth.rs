@@ -40,7 +40,7 @@ struct RefreshResponse {
     access_token: String,
 }
 
-fn open_authorization() -> Result<()> {
+pub(super) fn open_authorization() -> Result<()> {
     let config = config::get_client_config()?;
     let verifier = nanoid!(128);
     let challenge = verifier.clone();

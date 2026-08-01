@@ -10,6 +10,11 @@ pub(super) struct Cli {
 #[allow(clippy::doc_markdown)]
 #[derive(Subcommand)]
 pub(super) enum CliCommands {
+    /// Interact with the authentication config
+    Auth {
+        #[clap(subcommand)]
+        auth_command: Option<AuthCommands>,
+    },
     /// Display your MyAnimeList in an organized format [alias: l]
     #[command(alias = "l")]
     List,
@@ -25,12 +30,15 @@ pub(super) enum CliCommands {
     /// Open the page for an anime in the browser       [alias: p]
     #[command(alias = "p")]
     Page,
-    /// Interact with the config
-    Config {
-        #[clap(short, long)]
-        /// Set client config
-        set_client: bool,
-    },
+}
+
+#[allow(clippy::doc_markdown)]
+#[derive(Subcommand)]
+pub(super) enum AuthCommands {
+    /// Run the MyAnimeList OAuth2 authorization flow
+    Login,
+    /// Set MyAnimeList client ID
+    SetClient,
 }
 
 #[derive(Subcommand)]

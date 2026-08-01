@@ -28,7 +28,65 @@ _koushin() {
         (( CURRENT += 1 ))
         curcontext="${curcontext%:*:*}:koushin-command-$line[1]:"
         case $line[1] in
-            (list)
+            (auth)
+_arguments "${_arguments_options[@]}" : \
+'-h[Print help]' \
+'--help[Print help]' \
+":: :_koushin__subcmd__auth_commands" \
+"*::: :->auth" \
+&& ret=0
+
+    case $state in
+    (auth)
+        words=($line[1] "${words[@]}")
+        (( CURRENT += 1 ))
+        curcontext="${curcontext%:*:*}:koushin-auth-command-$line[1]:"
+        case $line[1] in
+            (login)
+_arguments "${_arguments_options[@]}" : \
+'-h[Print help]' \
+'--help[Print help]' \
+&& ret=0
+;;
+(set-client)
+_arguments "${_arguments_options[@]}" : \
+'-h[Print help]' \
+'--help[Print help]' \
+&& ret=0
+;;
+(help)
+_arguments "${_arguments_options[@]}" : \
+":: :_koushin__subcmd__auth__subcmd__help_commands" \
+"*::: :->help" \
+&& ret=0
+
+    case $state in
+    (help)
+        words=($line[1] "${words[@]}")
+        (( CURRENT += 1 ))
+        curcontext="${curcontext%:*:*}:koushin-auth-help-command-$line[1]:"
+        case $line[1] in
+            (login)
+_arguments "${_arguments_options[@]}" : \
+&& ret=0
+;;
+(set-client)
+_arguments "${_arguments_options[@]}" : \
+&& ret=0
+;;
+(help)
+_arguments "${_arguments_options[@]}" : \
+&& ret=0
+;;
+        esac
+    ;;
+esac
+;;
+        esac
+    ;;
+esac
+;;
+(list)
 _arguments "${_arguments_options[@]}" : \
 '-h[Print help]' \
 '--help[Print help]' \
@@ -104,14 +162,6 @@ _arguments "${_arguments_options[@]}" : \
 '--help[Print help]' \
 && ret=0
 ;;
-(config)
-_arguments "${_arguments_options[@]}" : \
-'-s[Set client config]' \
-'--set-client[Set client config]' \
-'-h[Print help]' \
-'--help[Print help]' \
-&& ret=0
-;;
 (help)
 _arguments "${_arguments_options[@]}" : \
 ":: :_koushin__subcmd__help_commands" \
@@ -124,7 +174,31 @@ _arguments "${_arguments_options[@]}" : \
         (( CURRENT += 1 ))
         curcontext="${curcontext%:*:*}:koushin-help-command-$line[1]:"
         case $line[1] in
-            (list)
+            (auth)
+_arguments "${_arguments_options[@]}" : \
+":: :_koushin__subcmd__help__subcmd__auth_commands" \
+"*::: :->auth" \
+&& ret=0
+
+    case $state in
+    (auth)
+        words=($line[1] "${words[@]}")
+        (( CURRENT += 1 ))
+        curcontext="${curcontext%:*:*}:koushin-help-auth-command-$line[1]:"
+        case $line[1] in
+            (login)
+_arguments "${_arguments_options[@]}" : \
+&& ret=0
+;;
+(set-client)
+_arguments "${_arguments_options[@]}" : \
+&& ret=0
+;;
+        esac
+    ;;
+esac
+;;
+(list)
 _arguments "${_arguments_options[@]}" : \
 && ret=0
 ;;
@@ -160,10 +234,6 @@ _arguments "${_arguments_options[@]}" : \
 _arguments "${_arguments_options[@]}" : \
 && ret=0
 ;;
-(config)
-_arguments "${_arguments_options[@]}" : \
-&& ret=0
-;;
 (help)
 _arguments "${_arguments_options[@]}" : \
 && ret=0
@@ -180,36 +250,87 @@ esac
 (( $+functions[_koushin_commands] )) ||
 _koushin_commands() {
     local commands; commands=(
+'auth:Interact with the authentication config' \
 'list:Display your MyAnimeList in an organized format \[alias\: l\]' \
 'set:Set an attribute for an anime                   \[alias\: s\]' \
 'mal:Open your MyAnimeList in the browser            \[alias\: m\]' \
 'page:Open the page for an anime in the browser       \[alias\: p\]' \
-'config:Interact with the config' \
 'help:Print this message or the help of the given subcommand(s)' \
     )
     _describe -t commands 'koushin commands' commands "$@"
 }
-(( $+functions[_koushin__subcmd__config_commands] )) ||
-_koushin__subcmd__config_commands() {
+(( $+functions[_koushin__subcmd__auth_commands] )) ||
+_koushin__subcmd__auth_commands() {
+    local commands; commands=(
+'login:Run the MyAnimeList OAuth2 authorization flow' \
+'set-client:Set MyAnimeList client ID' \
+'help:Print this message or the help of the given subcommand(s)' \
+    )
+    _describe -t commands 'koushin auth commands' commands "$@"
+}
+(( $+functions[_koushin__subcmd__auth__subcmd__help_commands] )) ||
+_koushin__subcmd__auth__subcmd__help_commands() {
+    local commands; commands=(
+'login:Run the MyAnimeList OAuth2 authorization flow' \
+'set-client:Set MyAnimeList client ID' \
+'help:Print this message or the help of the given subcommand(s)' \
+    )
+    _describe -t commands 'koushin auth help commands' commands "$@"
+}
+(( $+functions[_koushin__subcmd__auth__subcmd__help__subcmd__help_commands] )) ||
+_koushin__subcmd__auth__subcmd__help__subcmd__help_commands() {
     local commands; commands=()
-    _describe -t commands 'koushin config commands' commands "$@"
+    _describe -t commands 'koushin auth help help commands' commands "$@"
+}
+(( $+functions[_koushin__subcmd__auth__subcmd__help__subcmd__login_commands] )) ||
+_koushin__subcmd__auth__subcmd__help__subcmd__login_commands() {
+    local commands; commands=()
+    _describe -t commands 'koushin auth help login commands' commands "$@"
+}
+(( $+functions[_koushin__subcmd__auth__subcmd__help__subcmd__set-client_commands] )) ||
+_koushin__subcmd__auth__subcmd__help__subcmd__set-client_commands() {
+    local commands; commands=()
+    _describe -t commands 'koushin auth help set-client commands' commands "$@"
+}
+(( $+functions[_koushin__subcmd__auth__subcmd__login_commands] )) ||
+_koushin__subcmd__auth__subcmd__login_commands() {
+    local commands; commands=()
+    _describe -t commands 'koushin auth login commands' commands "$@"
+}
+(( $+functions[_koushin__subcmd__auth__subcmd__set-client_commands] )) ||
+_koushin__subcmd__auth__subcmd__set-client_commands() {
+    local commands; commands=()
+    _describe -t commands 'koushin auth set-client commands' commands "$@"
 }
 (( $+functions[_koushin__subcmd__help_commands] )) ||
 _koushin__subcmd__help_commands() {
     local commands; commands=(
+'auth:Interact with the authentication config' \
 'list:Display your MyAnimeList in an organized format \[alias\: l\]' \
 'set:Set an attribute for an anime                   \[alias\: s\]' \
 'mal:Open your MyAnimeList in the browser            \[alias\: m\]' \
 'page:Open the page for an anime in the browser       \[alias\: p\]' \
-'config:Interact with the config' \
 'help:Print this message or the help of the given subcommand(s)' \
     )
     _describe -t commands 'koushin help commands' commands "$@"
 }
-(( $+functions[_koushin__subcmd__help__subcmd__config_commands] )) ||
-_koushin__subcmd__help__subcmd__config_commands() {
+(( $+functions[_koushin__subcmd__help__subcmd__auth_commands] )) ||
+_koushin__subcmd__help__subcmd__auth_commands() {
+    local commands; commands=(
+'login:Run the MyAnimeList OAuth2 authorization flow' \
+'set-client:Set MyAnimeList client ID' \
+    )
+    _describe -t commands 'koushin help auth commands' commands "$@"
+}
+(( $+functions[_koushin__subcmd__help__subcmd__auth__subcmd__login_commands] )) ||
+_koushin__subcmd__help__subcmd__auth__subcmd__login_commands() {
     local commands; commands=()
-    _describe -t commands 'koushin help config commands' commands "$@"
+    _describe -t commands 'koushin help auth login commands' commands "$@"
+}
+(( $+functions[_koushin__subcmd__help__subcmd__auth__subcmd__set-client_commands] )) ||
+_koushin__subcmd__help__subcmd__auth__subcmd__set-client_commands() {
+    local commands; commands=()
+    _describe -t commands 'koushin help auth set-client commands' commands "$@"
 }
 (( $+functions[_koushin__subcmd__help__subcmd__help_commands] )) ||
 _koushin__subcmd__help__subcmd__help_commands() {
