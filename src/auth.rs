@@ -82,6 +82,8 @@ pub(super) fn open_authorization() -> Result<()> {
     })?;
     std::fs::write(path, contents)?;
 
+    println!("access_token and refresh_token obtained!");
+
     Ok(())
 }
 
