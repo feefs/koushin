@@ -16,7 +16,7 @@ crossterm = "0.29.0"
 eyre = "0.6.12"
 inquire = "0.9.4"
 nanoid = "0.5.0"
-open = "5.4.0"
+webbrowser = "1.2.2"
 phf = { version = "0.14.0", features = ["macros"] }
 qstring = "0.7.2"
 serde = { version = "1.0.229", features = ["derive"] }

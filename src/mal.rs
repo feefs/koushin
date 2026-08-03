@@ -282,7 +282,7 @@ pub(super) fn open_my_anime_list(auth: &AuthConfig) -> Result<()> {
         .into_body()
         .read_json()?;
 
-    open::that(format!("https://myanimelist.net/animelist/{}?status=1", response.name))?;
+    webbrowser::open(&format!("https://myanimelist.net/animelist/{}?status=1", response.name))?;
 
     Ok(())
 }
@@ -292,7 +292,7 @@ pub(super) fn open_anime_page(auth: &AuthConfig) -> Result<()> {
 
     let entry = select_entry(&entries)?;
 
-    open::that(format!("https://myanimelist.net/anime/{}", entry.id))?;
+    webbrowser::open(&format!("https://myanimelist.net/anime/{}", entry.id))?;
 
     Ok(())
 }
