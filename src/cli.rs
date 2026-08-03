@@ -15,20 +15,16 @@ pub(super) enum CliCommands {
         #[clap(subcommand)]
         auth_command: Option<AuthCommands>,
     },
-    /// Display your MyAnimeList in an organized format [alias: l]
-    #[command(alias = "l")]
+    /// Display your MyAnimeList in an organized format
     List,
-    /// Set an attribute for an anime                   [alias: s]
-    #[command(alias = "s")]
+    /// Set an attribute for an anime
     Set {
         #[clap(subcommand)]
         set_command: SetCommands,
     },
-    /// Open your MyAnimeList in the browser            [alias: m]
-    #[command(alias = "m")]
+    /// Open your MyAnimeList in the browser
     Mal,
-    /// Open the page for an anime in the browser       [alias: p]
-    #[command(alias = "p")]
+    /// Open the page for an anime in the browser
     Page,
 }
 
