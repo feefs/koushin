@@ -1,5 +1,5 @@
+use crate::agent;
 use crate::auth::AuthConfig;
-use crate::spinner;
 use ansi_term::Color;
 use chrono::{Datelike, Local, Weekday};
 use eyre::Result;
@@ -88,7 +88,7 @@ struct UserInfoResponse {
 
 fn get_entries(auth: &AuthConfig) -> Result<Vec<Entry>> {
     let mut entries: Vec<Entry> = Vec::new();
-    let mut page: AnimeListResponse = spinner::agent()
+    let mut page: AnimeListResponse = agent::agent()
         .get("https://api.myanimelist.net/v2/users/@me/animelist?status=watching&fields=my_list_status{tags,comments},num_episodes&nsfw=true")
         .header("Authorization", format!("Bearer {}", auth.access_token))
         .call()?
@@ -108,7 +108,7 @@ fn get_entries(auth: &AuthConfig) -> Result<Vec<Entry>> {
 
         match page.paging.next {
             Some(url) => {
-                page = spinner::agent().get(&url).header("Authorization", format!("Bearer {}", auth.access_token)).call()?.into_body().read_json()?;
+                page = agent::agent().get(&url).header("Authorization", format!("Bearer {}", auth.access_token)).call()?.into_body().read_json()?;
             }
             None => break,
         }
@@ -199,7 +199,7 @@ pub(super) fn update_episode_count(auth: &AuthConfig, action: EpisodeAction) -> 
 
         if Confirm::new(&confirm_prompt_text).with_default(true).with_help_message(&help_message_text).prompt()? {
             let url = base_update_entry_url(&entry);
-            let request = spinner::agent().patch(url).header("Authorization", format!("Bearer {}", auth.access_token));
+            let request = agent::agent().patch(url).header("Authorization", format!("Bearer {}", auth.access_token));
 
             let new_episode_count: usize = match action {
                 EpisodeAction::Set => CustomType::new("Input episode count:").with_error_message("Invalid episode count!").prompt()?,
@@ -249,7 +249,7 @@ pub(super) fn update_airing_day(auth: &AuthConfig) -> Result<()> {
     let entry = select_entry(&entries)?;
 
     let url = base_update_entry_url(&entry);
-    let request = spinner::agent().patch(url).header("Authorization", format!("Bearer {}", auth.access_token));
+    let request = agent::agent().patch(url).header("Authorization", format!("Bearer {}", auth.access_token));
 
     let mut days = VecDeque::from([
         Weekday::Mon,
@@ -275,7 +275,7 @@ pub(super) fn update_airing_day(auth: &AuthConfig) -> Result<()> {
 }
 
 pub(super) fn open_my_anime_list(auth: &AuthConfig) -> Result<()> {
-    let response: UserInfoResponse = spinner::agent()
+    let response: UserInfoResponse = agent::agent()
         .get("https://api.myanimelist.net/v2/users/@me")
         .header("Authorization", format!("Bearer {}", auth.access_token))
         .call()?

@@ -1,8 +1,8 @@
+mod agent;
 mod auth;
 mod cli;
 mod config;
 mod mal;
-mod spinner;
 mod xdg;
 
 use crate::auth::AuthConfig;

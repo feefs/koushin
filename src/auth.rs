@@ -1,5 +1,5 @@
+use crate::agent;
 use crate::config;
-use crate::spinner;
 use crate::xdg;
 use ansi_term::Color;
 use eyre::{Result, eyre};
@@ -64,7 +64,7 @@ pub(super) fn open_authorization() -> Result<()> {
     };
     code_request.respond(Response::from_string("Code received!"))?;
 
-    let token_response_json: TokenResponse = spinner::agent()
+    let token_response_json: TokenResponse = agent::agent()
         .post("https://myanimelist.net/v1/oauth2/token")
         .send_form([
             ("client_id", config.client_id.as_str()),
@@ -91,13 +91,13 @@ fn verify_refresh_auth() -> Result<()> {
     let auth_config = deserialize_auth_config()?;
     let client_config = config::get_client_config()?;
 
-    let res = spinner::agent()
+    let res = agent::agent()
         .get("https://api.myanimelist.net/v2/users/@me")
         .header("Authorization", format!("Bearer {}", auth_config.access_token))
         .call()?;
 
     if !res.status().is_success() {
-        let refresh_response_json: RefreshResponse = spinner::agent()
+        let refresh_response_json: RefreshResponse = agent::agent()
             .post("https://myanimelist.net/v1/oauth2/token")
             .send_form([
                 ("client_id", client_config.client_id.as_str()),
